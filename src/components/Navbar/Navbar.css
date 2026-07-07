@@ -1,0 +1,67 @@
+.navbar{
+  position:sticky;
+  top:0;
+  z-index:50;
+  height:80px;
+  background:var(--white);
+  border-bottom:1px solid #E5E7EB;
+  display:flex;
+  align-items:center;
+  width:100%;
+  box-sizing:border-box;
+  box-shadow: 0 1px 8px rgba(15,23,42,0.04);
+}
+
+/* Constrained inner container for content spacing */
+.navbar-container{max-width:1280px;width:100%;margin:0 auto;padding-left:32px;padding-right:32px;display:flex;align-items:center;justify-content:space-between;box-sizing:border-box}
+
+/* Three-block flex layout */
+.navbar-left{flex:0 0 auto;display:flex;align-items:center}
+.navbar-center{flex:1;display:flex;justify-content:center;align-items:center}
+.navbar-right{flex:0 0 auto;display:flex;align-items:center;gap:12px}
+
+.sb-left{flex:0 0 auto;display:flex;align-items:center}
+.sb-logo{font-family:Poppins, Inter, sans-serif;font-weight:800;text-decoration:none;font-size:34px;letter-spacing:-0.8px}
+.logo-skill{color:#0F172A}
+.logo-bridge{color:#1D4ED8}
+
+.sb-nav{display:flex;gap:44px;align-items:center;justify-content:center}
+.b-nav-link-placeholder{}
+.sb-nav-link{position:relative;color:#334155;text-decoration:none;padding:8px 0;font-weight:600;transition:color .25s ease}
+.sb-nav-link:not(.active):hover{color:#1D4ED8}
+.sb-nav-link::after{content:"";position:absolute;left:0;bottom:-6px;height:2px;width:0;background:#1D4ED8;transition:width .25s ease;transform-origin:left}
+.sb-nav-link:hover::after{width:100%}
+.sb-nav-link.active{color:var(--primary)}
+
+/* mobile-only auth links hidden by default */
+.sb-mobile-auth, .sb-mobile-cta{display:none}
+
+.sb-right{display:flex;align-items:center;gap:12px;flex:0 0 auto}
+.sb-login{color:var(--text-muted);text-decoration:none;padding:8px 12px;border-radius:6px}
+.sb-cta{background:var(--primary);color:var(--white);text-decoration:none;padding:10px 14px;border-radius:8px;font-weight:600;transition:background .25s ease, transform .25s ease, box-shadow .25s ease}
+.sb-cta:hover{background:#1D4ED8;transform:translateY(-2px);box-shadow:0 8px 20px rgba(37,99,235,0.18)}
+
+.sb-hamburger{display:none;background:none;border:0;padding:8px;border-radius:8px}
+.sb-hamburger .bar{display:block;width:20px;height:2px;background:var(--text-dark);margin:4px 0;border-radius:2px}
+
+/* Mobile */
+@media (max-width: 900px){
+  .sb-nav{display:none;position:absolute;top:80px;left:0;right:0;background:var(--white);flex-direction:column;padding:16px;border-bottom:1px solid var(--borders);gap:12px}
+  .sb-nav.open{display:flex}
+  .sb-hamburger{display:inline-flex}
+  /* hide desktop auth buttons on mobile (they appear inside nav) */
+  .sb-cta{display:none}
+  .sb-login{display:none}
+  .navbar{gap:12px}
+
+  /* mobile-specific auth inside nav */
+  .sb-mobile-auth{display:block;color:var(--text-muted);padding:8px 0}
+  .sb-mobile-cta{display:block;background:var(--primary);color:var(--white);padding:10px 12px;border-radius:8px;font-weight:600;text-align:center}
+}
+
+/* Center nav on wide screens */
+@media (min-width: 901px){
+  .sb-nav{max-width:520px;margin:0 auto}
+}
+
+.sb-mobile-backdrop{position:fixed;inset:80px 0 0 0;background:rgba(15,23,42,0.04);z-index:40}
