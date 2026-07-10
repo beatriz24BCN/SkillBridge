@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import './Navbar.css'
+import AIAssistant from '../AIAssistant/AIAssistant'
 
 export default function Navbar(){
   const [open,setOpen] = useState(false)
+  const [aiOpen, setAiOpen] = useState(false)
   const navRef = useRef(null)
   const buttonId = 'sb-hamburger'
   const navId = 'sb-main-nav'
@@ -43,6 +45,7 @@ export default function Navbar(){
         </nav>
 
         <div className="navbar-right sb-right">
+          <button type="button" className="sb-ai-btn" onClick={()=> { console.log('AI button clicked', aiOpen); setAiOpen(true) }}>AI Assistant</button>
           <Link to="/login" className="sb-login">Login</Link>
           <Link to="/signup" className="sb-cta">Sign Up</Link>
           <button id={buttonId} className="sb-hamburger" aria-label="Toggle menu" aria-controls={navId} onClick={()=>setOpen(!open)} aria-expanded={open}>
@@ -56,6 +59,10 @@ export default function Navbar(){
       {open && (
         <div className="sb-mobile-backdrop" onClick={()=>setOpen(false)} />
       )}
+      <AIAssistant
+        open={aiOpen}
+        onClose={() => setAiOpen(false)}
+      />
     </header>
   )
 }

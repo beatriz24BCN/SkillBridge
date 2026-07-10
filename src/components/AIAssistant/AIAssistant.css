@@ -1,0 +1,60 @@
+.ai-assistant-root { pointer-events: auto; }
+.ai-panel { position: relative; box-shadow: 0 20px 50px rgba(15,23,42,0.25); border-radius: 14px; overflow: hidden; background: rgba(255,255,255,0.98); display: flex; flex-direction: column; }
+.ai-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: linear-gradient(135deg,#ff8a5b,#ff6b81); color: white; cursor: grab; user-select: none; }
+.ai-header:active { cursor: grabbing; }
+.ai-header-left { display:flex; align-items:center; gap:12px; }
+.ai-avatar { width:44px; height:44px; border-radius:50%; background: rgba(255,255,255,0.9); display:flex; align-items:center; justify-content:center; font-size:20px; box-shadow: 0 4px 10px rgba(15,23,42,0.08); }
+.ai-avatar::after { content: '\1F916'; font-size:20px }
+.ai-titles { display:flex; flex-direction:column; margin-left:8px }
+.ai-title { font-weight:700; font-size:15px }
+.ai-sub { font-size:12px; opacity:0.95 }
+.ai-header-right { display:flex; align-items:center; gap:12px }
+.ai-status { display:flex; align-items:center; gap:8px; font-size:12px }
+.ai-status .dot { width:8px; height:8px; background:#22c55e; border-radius:50%; display:inline-block }
+.ai-controls { display:flex; gap:6px }
+.ai-controls .ctrl { background: rgba(255,255,255,0.12); border: none; color: white; padding:6px 8px; border-radius:6px; cursor:pointer }
+.ai-controls .ctrl.close { background: rgba(255,255,255,0.18) }
+
+.ai-window { width:100%; height:100%; display:flex; flex-direction:column; }
+
+/* ensure the rnd wrapper doesn't break stacking */
+.ai-rnd { position: fixed; }
+.ai-body { display:flex; flex-direction:column; padding:14px; height:100%; box-sizing:border-box }
+.ai-quick-actions { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px }
+.ai-quick-actions button { background:#eef2ff; border:1px solid #e0e7ff; color:#1e40af; padding:8px 10px; border-radius:10px; cursor:pointer; font-weight:600 }
+
+.ai-chat { overflow-y:auto; flex:1; min-height:0; padding-right:8px; scroll-behavior:smooth }
+.ai-chat::-webkit-scrollbar { width:0; height:0 }
+
+.ai-msg { display:flex; flex-direction:column; margin-bottom:14px; max-width:100%; animation: fadeIn 200ms ease; }
+.ai-msg.user { align-items:flex-end }
+.ai-msg.ai { align-items:flex-start }
+.ai-msg-text { padding:12px 14px; border-radius:16px; max-width:360px; white-space:pre-wrap }
+.ai-msg.user .ai-msg-text { background: linear-gradient(90deg,#2563EB 0%,#6366F1 100%); color:white; border-bottom-right-radius:6px }
+.ai-msg.ai .ai-msg-text { background:#FBFBFD; color:#0F172A; border-bottom-left-radius:6px; box-shadow: 0 6px 18px rgba(15,23,42,0.06) }
+.ai-time { font-size:11px; color:#94a3b8; margin-top:6px }
+
+.job-list { display:flex; flex-direction:column; gap:8px; margin-top:8px }
+.job-card { display:flex; flex-direction:column; border:1px solid #eef2ff; padding:10px; border-radius:10px; background:white }
+.job-main { display:flex; flex-direction:column }
+.job-title { font-weight:600 }
+.job-location { font-size:12px; color:#475569 }
+.job-meta { display:flex; justify-content:space-between; margin-top:8px; font-size:13px }
+.job-actions { margin-top:8px; display:flex }
+.job-save { background:#2563EB; color:white; border:none; padding:8px 10px; border-radius:8px; cursor:pointer }
+.job-save.saved { background:#10b981 }
+
+.ai-input-wrap { display:flex; gap:8px; margin-top:8px; align-items:center }
+.ai-input { flex:1; min-height:46px; max-height:120px; resize:none; padding:10px; border:1px solid #e6eefc; border-radius:12px; outline:none; background:#ffffff }
+.ai-send { width:44px; height:44px; border-radius:50%; border:none; background:#2563EB; color:white; cursor:pointer; box-shadow: 0 8px 22px rgba(37,99,235,0.22) }
+
+.ai-resizer { position:absolute; width:18px; height:18px; right:8px; bottom:8px; cursor:se-resize; }
+
+.ai-robot-btn { position:fixed; right:24px; bottom:24px; width:64px; height:64px; border-radius:50%; background: white; color:#0f172a; border:none; box-shadow: 0 18px 40px rgba(79,70,229,0.18), 0 6px 20px rgba(37,99,235,0.12); font-size:26px; cursor:pointer; display:flex; align-items:center; justify-content:center }
+.ai-robot-btn::before { content: ''; position:absolute; width:120%; height:120%; border-radius:50%; left:-10%; top:-10%; background: radial-gradient(circle at 30% 30%, rgba(37,99,235,0.18), transparent 20%), radial-gradient(circle at 70% 70%, rgba(124,58,237,0.12), transparent 25%); z-index:-1 }
+
+
+@keyframes fadeIn { from { opacity:0; transform: translateY(6px) } to { opacity:1; transform: translateY(0) } }
+
+/* hide backdrop and scrollbar in a way that preserves interactivity */
+.ai-assistant-root.minimized .ai-panel { display:none }

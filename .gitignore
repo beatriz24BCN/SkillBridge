@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.vite/
+tmp/
+.env
+
+# Optional: editor and OS files
+.vscode/
+.DS_Store
