@@ -1,47 +1,53 @@
 .ai-assistant-root { pointer-events: auto; }
-.ai-panel { position: relative; box-shadow: 0 20px 50px rgba(15,23,42,0.25); border-radius: 14px; overflow: hidden; background: rgba(255,255,255,0.98); display: flex; flex-direction: column; }
-.ai-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: linear-gradient(135deg,#ff8a5b,#ff6b81); color: white; cursor: grab; user-select: none; }
+.ai-panel { position: relative; box-shadow: 0 20px 60px rgba(15,23,42,0.18); border-radius: 14px; overflow: hidden; background: rgba(255,255,255,0.98); display: flex; flex-direction: column; }
+/* ensure default floating position bottom-right with 24px margin (overrides inline where needed) */
+.ai-panel { right: 24px !important; bottom: 24px !important; }
+/* avoid covering top navbar by constraining height */
+.ai-panel { max-height: calc(100vh - 104px); }
+.ai-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: linear-gradient(135deg,#1D4ED8 0%,#2563EB 60%,#4F46E5 100%); color: white; cursor: grab; user-select: none; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 8px 24px rgba(37,99,235,0.18); }
 .ai-header:active { cursor: grabbing; }
-.ai-header-left { display:flex; align-items:center; gap:12px; }
+.ai-header-left { display:flex; align-items:center; gap:10px; }
 .ai-avatar { width:44px; height:44px; border-radius:50%; background: rgba(255,255,255,0.9); display:flex; align-items:center; justify-content:center; font-size:20px; box-shadow: 0 4px 10px rgba(15,23,42,0.08); }
 .ai-avatar::after { content: '\1F916'; font-size:20px }
-.ai-titles { display:flex; flex-direction:column; margin-left:8px }
+.ai-titles { display:flex; flex-direction:column; margin-left:6px }
 .ai-title { font-weight:700; font-size:15px }
 .ai-sub { font-size:12px; opacity:0.95 }
 .ai-header-right { display:flex; align-items:center; gap:12px }
 .ai-status { display:flex; align-items:center; gap:8px; font-size:12px }
 .ai-status .dot { width:8px; height:8px; background:#22c55e; border-radius:50%; display:inline-block }
 .ai-controls { display:flex; gap:6px }
-.ai-controls .ctrl { background: rgba(255,255,255,0.12); border: none; color: white; padding:6px 8px; border-radius:6px; cursor:pointer }
+.ai-controls .ctrl { background: rgba(255,255,255,0.15); border: none; color: white; padding:6px 8px; border-radius:8px; cursor:pointer; transition: background .12s ease, transform .12s ease }
 .ai-controls .ctrl.close { background: rgba(255,255,255,0.18) }
+.ai-controls .ctrl:hover { background: rgba(255,255,255,0.25) }
 
 .ai-window { width:100%; height:100%; display:flex; flex-direction:column; }
 
 /* ensure the rnd wrapper doesn't break stacking */
 .ai-rnd { position: fixed; }
-.ai-body { display:flex; flex-direction:column; padding:14px; height:100%; box-sizing:border-box }
-.ai-quick-actions { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px }
-.ai-quick-actions button { background:#eef2ff; border:1px solid #e0e7ff; color:#1e40af; padding:8px 10px; border-radius:10px; cursor:pointer; font-weight:600 }
+.ai-body { display:flex; flex-direction:column; padding:24px 18px 18px 18px; height:100%; box-sizing:border-box }
+.ai-quick-actions { display:flex; gap:12px; flex-wrap:wrap; margin:20px 0 22px 0 }
+.ai-quick-actions button { background: white; border:1px solid #E5E7EB; color:#2563EB; padding:10px 14px; border-radius:999px; cursor:pointer; font-weight:600; transition: transform .14s ease, background .12s ease, box-shadow .12s ease }
+.ai-quick-actions button:hover { background: #EFF6FF; transform: translateY(-1px) }
 
-.ai-chat { overflow-y:auto; flex:1; min-height:0; padding-right:8px; scroll-behavior:smooth }
+.ai-chat { overflow-y:auto; flex:1; min-height:0; padding:14px; margin-top:12px; box-sizing:border-box; scroll-behavior:smooth }
 .ai-chat::-webkit-scrollbar { width:0; height:0 }
 
-.ai-msg { display:flex; flex-direction:column; margin-bottom:14px; max-width:100%; animation: fadeIn 200ms ease; }
+.ai-msg { display:flex; flex-direction:column; margin-bottom:18px; max-width:100%; animation: fadeIn 200ms ease; }
 .ai-msg.user { align-items:flex-end }
 .ai-msg.ai { align-items:flex-start }
 .ai-msg-text { padding:12px 14px; border-radius:16px; max-width:360px; white-space:pre-wrap }
-.ai-msg.user .ai-msg-text { background: linear-gradient(90deg,#2563EB 0%,#6366F1 100%); color:white; border-bottom-right-radius:6px }
-.ai-msg.ai .ai-msg-text { background:#FBFBFD; color:#0F172A; border-bottom-left-radius:6px; box-shadow: 0 6px 18px rgba(15,23,42,0.06) }
-.ai-time { font-size:11px; color:#94a3b8; margin-top:6px }
+.ai-msg.user .ai-msg-text { background: #2563EB; color:white; border-bottom-right-radius:6px }
+.ai-msg.ai .ai-msg-text { background:#F1F5F9; color:#0F172A; border-bottom-left-radius:6px; box-shadow: 0 6px 18px rgba(15,23,42,0.06) }
+.ai-time { font-size:12px; color:#64748b; margin-top:6px; opacity:0.9 }
 
-.job-list { display:flex; flex-direction:column; gap:8px; margin-top:8px }
-.job-card { display:flex; flex-direction:column; border:1px solid #eef2ff; padding:10px; border-radius:10px; background:white }
+.job-list { display:flex; flex-direction:column; gap:14px; margin-top:10px }
+.job-card { display:flex; flex-direction:column; border:1px solid #EEF2FF; padding:14px; border-radius:12px; background:white }
 .job-main { display:flex; flex-direction:column }
-.job-title { font-weight:600 }
-.job-location { font-size:12px; color:#475569 }
-.job-meta { display:flex; justify-content:space-between; margin-top:8px; font-size:13px }
-.job-actions { margin-top:8px; display:flex }
-.job-save { background:#2563EB; color:white; border:none; padding:8px 10px; border-radius:8px; cursor:pointer }
+.job-title { font-weight:800; font-size:16px; color:#0F172A }
+.job-location { font-size:12px; color:#64748b; margin-top:6px }
+.job-meta { display:inline-flex; align-items:center; gap:8px; margin-top:10px; font-size:13px; color:#1D4ED8; background:#EFF6FF; padding:6px 10px; border-radius:999px }
+.job-actions { margin-top:12px; display:flex }
+.job-save { background:#2563EB; color:white; border:none; padding:8px 14px; border-radius:999px; cursor:pointer; font-weight:600 }
 .job-save.saved { background:#10b981 }
 
 .ai-input-wrap { display:flex; gap:8px; margin-top:8px; align-items:center }

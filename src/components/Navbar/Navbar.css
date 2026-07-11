@@ -67,5 +67,6 @@
 .sb-mobile-backdrop{position:fixed;inset:80px 0 0 0;background:rgba(15,23,42,0.04);z-index:40}
 
 /* Premium AI toggle button */
-.sb-ai-btn{background: rgba(255,255,255,0.9);border:1px solid #E5E7EB;border-radius:999px;padding:10px 18px;font-weight:600;color:#0F172A;box-shadow:0 2px 8px rgba(0,0,0,0.06);cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,background .12s ease}
-.sb-ai-btn:hover{background:#F8FAFC;transform:translateY(-1px);box-shadow:0 8px 24px rgba(15,23,42,0.08)}
+.sb-ai-btn{background: white; color: #2563EB; border: 1px solid #E5E7EB; border-radius: 999px; padding: 10px 18px; font-weight:600; cursor:pointer; transition: all 0.2s ease; display:inline-flex; align-items:center; gap:8px }
+.sb-ai-btn:hover{ background: #EFF6FF; border-color: #BFDBFE; color: #1D4ED8; transform: translateY(-1px) }
+.sb-ai-btn::before{ content: '🤖'; display:inline-block }
