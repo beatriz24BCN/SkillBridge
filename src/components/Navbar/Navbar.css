@@ -25,7 +25,7 @@
 .logo-skill{color:#0F172A}
 .logo-bridge{color:#1D4ED8}
 
-.sb-nav{display:flex;gap:44px;align-items:center;justify-content:center}
+.sb-nav{display:flex;gap:36px;align-items:center;justify-content:center}
 .b-nav-link-placeholder{}
 .sb-nav-link{position:relative;color:#334155;text-decoration:none;padding:8px 0;font-weight:600;transition:color .25s ease}
 .sb-nav-link:not(.active):hover{color:#1D4ED8}

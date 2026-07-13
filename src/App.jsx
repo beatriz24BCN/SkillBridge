@@ -8,6 +8,7 @@ import Employers from './pages/Employers'
 import About from './pages/About'
 import Login from './pages/Auth/Login'
 import Signup from './pages/Auth/Signup'
+import Credentials from './pages/Credentials'
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
           <Route path="/companies" element={<Companies />} />
           <Route path="/employers" element={<Employers />} />
           <Route path="/about" element={<About />} />
+          <Route path="/credentials" element={<Credentials />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
         </Routes>

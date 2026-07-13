@@ -24,12 +24,12 @@
 
 /* ensure the rnd wrapper doesn't break stacking */
 .ai-rnd { position: fixed; }
-.ai-body { display:flex; flex-direction:column; padding:24px 18px 18px 18px; height:100%; box-sizing:border-box }
-.ai-quick-actions { display:flex; gap:12px; flex-wrap:wrap; margin:20px 0 22px 0 }
+.ai-body { display:flex; flex-direction:column; padding:32px 18px 18px 18px; box-sizing:border-box; flex:1; min-height:0 }
+.ai-quick-actions { display:flex; gap:12px; flex-wrap:wrap; margin:12px 0 20px 0 }
 .ai-quick-actions button { background: white; border:1px solid #E5E7EB; color:#2563EB; padding:10px 14px; border-radius:999px; cursor:pointer; font-weight:600; transition: transform .14s ease, background .12s ease, box-shadow .12s ease }
 .ai-quick-actions button:hover { background: #EFF6FF; transform: translateY(-1px) }
 
-.ai-chat { overflow-y:auto; flex:1; min-height:0; padding:14px; margin-top:12px; box-sizing:border-box; scroll-behavior:smooth }
+.ai-chat { overflow-y:auto; flex:1; min-height:0; padding:14px; margin-top:18px; padding-bottom:22px; box-sizing:border-box; scroll-behavior:smooth }
 .ai-chat::-webkit-scrollbar { width:0; height:0 }
 
 .ai-msg { display:flex; flex-direction:column; margin-bottom:18px; max-width:100%; animation: fadeIn 200ms ease; }

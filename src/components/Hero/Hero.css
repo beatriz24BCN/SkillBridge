@@ -28,11 +28,11 @@
 .card-salary{font-weight:700;color:var(--text-dark);font-size:15px}
 
 /* Layout of floating composition */
-.hero-right{min-height:460px;transform:translateY(-80px)}
-.card-1{transform:translate(-22px,-44px) scale(1.09);z-index:33;width:345px;padding:30px 32px;box-shadow:0 16px 44px rgba(15,23,42,0.09)}
-.card-2{position:absolute;right:16px;top:8px;z-index:30;width:240px}
-.card-3{position:absolute;left:40px;bottom:8px;z-index:18;width:240px}
-.card-4{position:absolute;left:340px;bottom:8px;z-index:15;width:220px}
+.hero-right{min-height:460px;transform:translateY(-50px);padding-right:36px}
+.card-1{transform:translate(-22px,-24px) scale(1.09);z-index:33;width:345px;padding:30px 32px;box-shadow:0 16px 44px rgba(15,23,42,0.09)}
+.card-2{position:absolute;right:16px;top:22px;z-index:30;width:240px}
+.card-3{position:absolute;left:28px;bottom:44px;z-index:18;width:240px}
+.card-4{position:absolute;right:28px;bottom:44px;z-index:15;width:220px}
 
 @media (max-width:900px){
   .hero-inner{flex-direction:column}

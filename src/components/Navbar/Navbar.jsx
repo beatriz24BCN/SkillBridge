@@ -38,6 +38,7 @@ export default function Navbar(){
           <NavLink onClick={()=>setOpen(false)} to="/companies" className={({isActive})=> `sb-nav-link${isActive? ' active':''}`}>Companies</NavLink>
           <NavLink onClick={()=>setOpen(false)} to="/employers" className={({isActive})=> `sb-nav-link${isActive? ' active':''}`}>For Employers</NavLink>
           <NavLink onClick={()=>setOpen(false)} to="/about" className={({isActive})=> `sb-nav-link${isActive? ' active':''}`}>About</NavLink>
+          <NavLink onClick={()=>setOpen(false)} to="/credentials" className={({isActive})=> `sb-nav-link${isActive? ' active':''}`}>Credentials</NavLink>
 
           {/* Mobile-only auth links inside the menu */}
           <Link onClick={()=>setOpen(false)} to="/login" className="sb-nav-link sb-mobile-auth">Login</Link>
