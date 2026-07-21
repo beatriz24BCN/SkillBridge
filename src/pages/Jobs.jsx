@@ -85,8 +85,18 @@ export default function Jobs(){
                 ))}
               </div>
 
-              <div className="load-more-row">
-                <button className="btn-load-more">Load More Jobs</button>
+              <div className="load-more-section">
+                <div className="load-more-divider" />
+                <div className="load-more-cta">
+                  <div className="load-more-text">
+                    <div className="load-more-title">Still looking for the perfect opportunity?</div>
+                    <div className="load-more-sub">More AI-powered job opportunities are waiting for you.</div>
+                  </div>
+                  <div className="load-more-action">
+                    <button className="btn-load-more">Load More Jobs →</button>
+                    <div className="load-more-caption">Showing {mockJobs.length} of 1,248 available jobs.</div>
+                  </div>
+                </div>
               </div>
             </section>
         </div>
