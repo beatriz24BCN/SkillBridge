@@ -1,5 +1,9 @@
 # 💼 SkillBridge
 
+<p align="center">
+  <img src="./SkillBridge.png" alt="SkillBridge Home" width="100%">
+</p>
+
 ## Description
 
 SkillBridge is a Full Stack web application designed to connect talented professionals with innovative companies through a modern recruitment platform. It provides an intuitive user experience with AI-powered features and a scalable architecture ready for future technologies.
