@@ -40,15 +40,15 @@
 .ai-msg.ai .ai-msg-text { background:#F1F5F9; color:#0F172A; border-bottom-left-radius:6px; box-shadow: 0 6px 18px rgba(15,23,42,0.06) }
 .ai-time { font-size:12px; color:#64748b; margin-top:6px; opacity:0.9 }
 
-.job-list { display:flex; flex-direction:column; gap:14px; margin-top:10px }
-.job-card { display:flex; flex-direction:column; border:1px solid #EEF2FF; padding:14px; border-radius:12px; background:white }
-.job-main { display:flex; flex-direction:column }
-.job-title { font-weight:800; font-size:16px; color:#0F172A }
-.job-location { font-size:12px; color:#64748b; margin-top:6px }
-.job-meta { display:inline-flex; align-items:center; gap:8px; margin-top:10px; font-size:13px; color:#1D4ED8; background:#EFF6FF; padding:6px 10px; border-radius:999px }
-.job-actions { margin-top:12px; display:flex }
-.job-save { background:#2563EB; color:white; border:none; padding:8px 14px; border-radius:999px; cursor:pointer; font-weight:600 }
-.job-save.saved { background:#10b981 }
+.ai-panel .job-list { display:flex; flex-direction:column; gap:14px; margin-top:10px }
+.ai-panel .job-card { display:flex; flex-direction:column; border:1px solid #EEF2FF; padding:14px; border-radius:12px; background:white }
+.ai-panel .job-main { display:flex; flex-direction:column }
+.ai-panel .job-title { font-weight:800; font-size:16px; color:#0F172A }
+.ai-panel .job-location { font-size:12px; color:#64748b; margin-top:6px }
+.ai-panel .job-meta { display:inline-flex; align-items:center; gap:8px; margin-top:10px; font-size:13px; color:#1D4ED8; background:#EFF6FF; padding:6px 10px; border-radius:999px }
+.ai-panel .job-actions { margin-top:12px; display:flex }
+.ai-panel .job-save { background:#2563EB; color:white; border:none; padding:8px 14px; border-radius:999px; cursor:pointer; font-weight:600 }
+.ai-panel .job-save.saved { background:#10b981 }
 
 .ai-input-wrap { display:flex; gap:8px; margin-top:8px; align-items:center }
 .ai-input { flex:1; min-height:46px; max-height:120px; resize:none; padding:10px; border:1px solid #e6eefc; border-radius:12px; outline:none; background:#ffffff }

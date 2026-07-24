@@ -15,7 +15,10 @@ export default function JobCard({ job }){
 
           <div className="card-right">
           <div className="job-salary">{job.salary}</div>
-          <div className="ai-match-badge" aria-hidden>{job.match}%</div>
+          <div className="ai-match-badge" aria-hidden>
+            <div className="ai-match-num">{job.match ? `${job.match}%` : '--'}</div>
+            <div className="ai-match-label">AI Match</div>
+          </div>
         </div>
       </div>
 
