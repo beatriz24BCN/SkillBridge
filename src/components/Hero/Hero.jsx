@@ -49,21 +49,11 @@ export default function Hero(){
           <div className="card card-2">
             <div className="card-title">Interview Scheduled</div>
             <div className="card-meta">Tomorrow • 10:00 AM</div>
-            <div className="card-icon" aria-hidden>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M7 11H17M7 15H17M8 3V5M16 3V5M3 7H21V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V7Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
           </div>
 
           <div className="card card-3">
             <div className="card-title">AI Recommendation</div>
             <div className="card-meta">5 new opportunities found.</div>
-            <div className="card-icon" aria-hidden>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L13.545 8.455L20 10L13.545 11.545L12 18L10.455 11.545L4 10L10.455 8.455L12 2Z" fill="currentColor"/>
-              </svg>
-            </div>
           </div>
 
           <div className="card card-4">
