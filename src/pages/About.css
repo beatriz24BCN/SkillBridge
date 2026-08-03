@@ -1,161 +1,195 @@
-/* Reset composition: remove borders/shadows/hovers and introduce distinct compositions */
-.about-page{background:var(--bg)}
+/* ABOUT — nueva composición narrativa y premium */
 
-/* HERO: asymmetrical composition with floating panels */
-.about-hero{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;margin:48px 0}
-.about-hero-left{padding:8px 0}
-.about-hero .badge{display:inline-block;background:linear-gradient(90deg,rgba(37,99,235,0.12),rgba(29,78,216,0.06));color:var(--primary);padding:8px 14px;border-radius:999px;font-weight:800;margin-bottom:18px}
-.about-title{font-size:56px;line-height:1.02;margin:0;color:var(--text-dark);font-weight:900;letter-spacing:-0.6px;max-width:620px}
-.about-sub{margin:18px 0 0;color:var(--text-muted);font-size:17px;line-height:1.7;max-width:640px}
-.about-actions{display:flex;gap:14px;margin-top:26px}
-.about-actions .btn-primary{padding:14px 26px;border-radius:12px;font-weight:800}
-.about-actions .btn-ghost{padding:12px 20px;border-radius:12px}
-
-.about-hero-right{position:relative;min-height:320px}
-/* floating metric cards arranged asymmetrically without shadows/borders */
-.floating-grid{position:absolute;right:0;top:0;display:grid;grid-template-columns:repeat(2,220px);grid-auto-rows:120px;gap:18px;align-items:start}
-.floating-grid .hero-card{background:linear-gradient(180deg,#ffffff,#f7fbff);border-radius:16px;padding:16px;display:flex;flex-direction:column;justify-content:center}
-.floating-grid .hero-card:nth-child(1){transform:translateY(8%)}
-.floating-grid .hero-card:nth-child(2){transform:translateY(40%)}
-.floating-grid .hero-card:nth-child(3){transform:translateY(0%)}
-.floating-grid .hero-card:nth-child(4){transform:translateY(28%)}
-
-/* A larger, flat panel that overlaps the content below for depth (no shadow) */
-.hc-main{position:relative;background:linear-gradient(180deg,#eef7ff,#ffffff);padding:20px;border-radius:18px;margin-top:60px}
-.hc-row{display:flex;justify-content:space-between;align-items:center}
-.hc-title{font-weight:800;color:var(--text-dark)}
-.hc-badge{background:linear-gradient(90deg,rgba(37,99,235,0.12),rgba(29,78,216,0.04));color:var(--primary);padding:6px 10px;border-radius:999px;font-weight:800}
-.hc-meta{color:var(--text-muted);font-size:13px;margin-top:8px}
-
-/* MISSION: staggered stats, asymmetric heights */
-.mission{display:grid;grid-template-columns:1fr 420px;gap:36px;margin-top:72px;align-items:start}
-.mission-left h2{margin:0;font-size:34px;font-weight:900;position:relative}
-.mission-left h2::after{content:"";position:absolute;left:0;right:auto;bottom:-12px;height:6px;width:72px;border-radius:6px;background:linear-gradient(90deg,rgba(37,99,235,0.95),rgba(29,78,216,0.85));opacity:0.16}
-.mission-left p{color:var(--text-muted);line-height:1.6;margin-top:14px}
-.mission-stats{display:grid;gap:14px}
-.mission-stats .stat{background:linear-gradient(180deg,#f9fbff,#ffffff);padding:18px;border-radius:14px;text-align:center}
-.mission-stats .stat.large{font-size:40px;font-weight:900;color:var(--primary);padding-top:26px}
-.mission-stats .stat.tall{grid-row:span 2;padding:28px}
-
-/* VALUES: broken grid to avoid four-equal pattern */
-.values{margin-top:72px;background:linear-gradient(180deg,rgba(247,249,255,0.8),rgba(255,255,255,0.6));padding:20px;border-radius:14px}
-.values-grid{display:grid;grid-template-columns:repeat(8,1fr);grid-auto-rows:110px;gap:18px;margin-top:18px}
-.values-grid .value-card{background:linear-gradient(180deg,#ffffff,#fbfdff);border-radius:12px;padding:18px;display:flex;flex-direction:column;justify-content:center}
-.values-grid .value-card:nth-child(1){grid-column:1 / span 3;grid-row:span 2}
-.values-grid .value-card:nth-child(2){grid-column:4 / span 2;grid-row:span 1}
-.values-grid .value-card:nth-child(3){grid-column:6 / span 3;grid-row:span 2}
-.values-grid .value-card:nth-child(4){grid-column:1 / span 2;grid-row:span 1}
-.values-grid .value-icon{width:54px;height:54px;border-radius:12px;background:linear-gradient(135deg,rgba(37,99,235,0.06),rgba(37,99,235,0.02));display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--primary)}
-.value-card h3{margin:12px 0 6px}
-.value-card p{margin:0;color:var(--text-muted);font-size:14px}
-
-/* HOW IT WORKS: staggered steps with vertical offsets to create rhythm */
-.how-it-works{margin-top:72px}
-.timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:28px;position:relative;padding-top:20px}
-.timeline .step{background:linear-gradient(180deg,#ffffff,#f7fbff);padding:18px;border-radius:14px;text-align:left}
-.timeline .step:nth-child(odd){transform:translateY(18px)}
-.timeline .step:nth-child(even){transform:translateY(-6px)}
-.step .num{width:54px;height:54px;border-radius:50%;background:linear-gradient(180deg,var(--primary),var(--primary-hover));display:flex;align-items:center;justify-content:center;margin-bottom:12px;color:#fff;font-weight:900}
-.step h3{margin:8px 0;color:var(--text-dark)}
-.step p{margin:0;color:var(--text-muted)}
-
-/* WHY CHOOSE: floating dashboard panel and spacious copy */
-.why-choose{display:grid;grid-template-columns:1fr 420px;gap:36px;margin-top:72px;align-items:start}
-.checks{list-style:none;padding:0;margin-top:12px;display:grid;gap:12px}
-.checks li{padding-left:36px;position:relative;font-weight:700}
-.checks li::before{content:"";position:absolute;left:0;top:6px;width:22px;height:22px;border-radius:6px;background:linear-gradient(180deg,var(--primary),var(--primary-hover));display:block}
-.checks li::after{content:"";position:absolute;left:8px;top:8px;width:8px;height:8px;border-radius:50%;background:#fff}
-.mini-dashboard{background:linear-gradient(180deg,#eef6ff,#ffffff);padding:18px;border-radius:14px;margin-top:8px}
-.mini-dashboard .big{font-size:30px;font-weight:900}
-.mini-dashboard .bars{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px;align-items:end;height:88px}
-.mini-dashboard .bar{background:linear-gradient(180deg,rgba(37,99,235,0.9),rgba(29,78,216,0.7));border-radius:8px;position:relative}
-.mini-dashboard .bar::after{content:"";position:absolute;left:6px;right:6px;top:8px;height:4px;border-radius:6px;background:rgba(255,255,255,0.06)}
-.mini-dashboard .bar::before{content:"";position:absolute;left:50%;transform:translateX(-50%);top:6px;width:8px;height:8px;border-radius:50%;background:#fff}
-.mini-dashboard .b1{height:36px}.mini-dashboard .b2{height:64px}.mini-dashboard .b3{height:50px}.mini-dashboard .b4{height:80px}
-
-/* IMPACT: asymmetric grid where first card is larger */
-.impact{margin-top:72px}
-.impact-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:18px;margin-top:18px}
-.impact-card{background:linear-gradient(180deg,#ffffff,#f7fbff);padding:20px;border-radius:14px;text-align:left}
-.impact-card:first-child{grid-column:1 / span 1;grid-row:span 2;padding:28px}
-.impact-card .num{font-size:44px;font-weight:900;color:var(--primary)}
-.impact-card .label{color:var(--text-muted);margin-top:10px}
-
-/* CTA band: retains gradient but flatter */
-.about-cta{margin:64px 0 96px;background:linear-gradient(90deg,var(--primary),var(--primary-hover));padding:36px;border-radius:16px;color:#fff}
-.about-cta h2{margin:0;font-size:30px}
-.about-cta p{margin:8px 0 0;color:rgba(255,255,255,0.92)}
-.cta-actions{display:flex;gap:12px;margin-top:18px}
-.cta-actions .btn-primary{background:#fff;color:var(--primary);padding:12px 22px;border-radius:12px;font-weight:900}
-
-/* Section headings: accent underline for rhythm */
-.about-page section h2{position:relative}
-.about-page section h2::after{content:"";position:absolute;left:0;bottom:-12px;height:6px;width:56px;border-radius:6px;background:linear-gradient(90deg,rgba(37,99,235,0.95),rgba(29,78,216,0.85));opacity:0.16}
-
-/* Remove all hover transforms and shadows globally for About page */
-.about-page *{transition:none !important}
-.about-page [class*="shadow"], .about-page [style*="box-shadow"], .about-page [style*="border"]{box-shadow:none !important;border:none !important}
-
-@media (max-width:1100px){
-  .about-hero{grid-template-columns:1fr;gap:22px}
-  .mission{grid-template-columns:1fr}
-  .why-choose{grid-template-columns:1fr}
-  .values-grid{grid-template-columns:repeat(2,1fr);grid-auto-rows:120px}
-  .timeline{grid-template-columns:repeat(2,1fr)}
-  .impact-grid{grid-template-columns:1fr;grid-auto-rows:auto}
-  .floating-grid{position:static;display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px}
-  .hc-main{margin-top:18px}
+:root {
+  /* fallback brand accents if variables missing */
 }
 
-/* Feature band styles */
-.feature-band{background:linear-gradient(90deg,rgba(37,99,235,0.06),rgba(29,78,216,0.02));padding:28px 0;margin-top:-32px}
-.feature-card{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,#ffffff,#f6fbff);border-radius:14px;padding:18px 22px}
-.feature-left .hc-title{font-size:20px;font-weight:900}
-.feature-left .hc-meta{color:var(--text-muted)}
-.feature-right .hc-badge{background:linear-gradient(90deg,var(--primary),var(--primary-hover));color:#fff;padding:8px 12px;border-radius:12px;font-weight:900}
+.about-page{background:var(--bg);color:var(--text-dark);padding:48px 0}
+.about-viewport{max-width:1200px;margin:0 auto;padding:28px}
 
-/* Adjust floating-grid to be less grid-like and more organic on wide viewports */
-.floating-grid{position:absolute;right:8px;top:12px;display:grid;grid-template-columns:repeat(1,220px);grid-auto-rows:120px;gap:18px;align-items:start}
-.floating-grid .hero-card{background:linear-gradient(180deg,#ffffff,#f7fbff);border-radius:12px;padding:14px}
-.floating-grid .hero-card:nth-child(1){transform:translateY(0%)}
-.floating-grid .hero-card:nth-child(2){transform:translateY(12%)}
-.floating-grid .hero-card:nth-child(3){transform:translateY(28%)}
+/* Utility — visually hidden */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
-/* Mission dashboard composition adjustments */
-.mission-left .mission-dashboard{margin-top:22px}
-.mission-stats{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.mission-stats .stat.tall{grid-row:1 / span 2}
+/* ---------- HERO ---------- */
+.hero-section{display:grid;grid-template-columns:1fr 520px;gap:56px;align-items:center;padding:48px 0}
+.hero-eyebrow{display:inline-block;color:var(--primary);font-weight:800;background:linear-gradient(90deg,rgba(37,99,235,0.08),transparent);padding:10px 14px;border-radius:999px;margin-bottom:18px}
+.hero-title{font-size:48px;line-height:1.03;margin:0 0 18px;font-weight:900;letter-spacing:-0.6px}
+.hero-lead{color:var(--text-muted);font-size:18px;line-height:1.7;max-width:54ch}
+.hero-actions{display:flex;gap:14px;margin-top:26px}
 
-/* Values mosaic responsive tweaks */
-.values-grid .value-card:nth-child(1){grid-column:1 / span 4;grid-row:1}
-.values-grid .value-card:nth-child(2){grid-column:5 / span 2;grid-row:1}
-.values-grid .value-card:nth-child(3){grid-column:7 / span 2;grid-row:1 / span 2}
-.values-grid .value-card:nth-child(4){grid-column:1 / span 3;grid-row:2}
+.hero-right{display:flex;align-items:center;justify-content:center}
+.hero-composition{width:100%;max-width:520px;height:340px;display:block}
+.dash-mock{width:100%;height:100%;border-radius:18px}
 
-/* Timeline: emphasize progression with alternating layout + connecting subtle rail */
-.timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;position:relative;padding-top:36px}
-.timeline::before{content:"";position:absolute;left:6%;right:6%;top:50px;height:2px;background:linear-gradient(90deg,rgba(37,99,235,0.12),rgba(37,99,235,0.04));transform:translateY(-50%);border-radius:2px}
-.timeline .step{background:linear-gradient(180deg,#ffffff,#fbfdff);padding:18px;border-radius:12px;text-align:left}
-.timeline .step:nth-child(1){transform:translateY(24px)}
-.timeline .step:nth-child(2){transform:translateY(-8px)}
-.timeline .step:nth-child(3){transform:translateY(18px)}
-.timeline .step:nth-child(4){transform:translateY(-4px)}
-.step .num{width:52px;height:52px;border-radius:50%;background:linear-gradient(180deg,var(--primary),var(--primary-hover));display:flex;align-items:center;justify-content:center;margin-bottom:12px;color:#fff;font-weight:900}
+/* ---------- STORY ---------- */
+.story-section{padding:48px 0}
+.story-grid{display:grid;grid-template-columns:320px 1fr;gap:36px;align-items:center}
+.story-visual{display:flex;align-items:center;justify-content:center;position:relative}
+.story-orbit{width:260px;height:260px;border-radius:50%;background:radial-gradient(circle at 30% 20%, rgba(37,99,235,0.06), transparent 30%), linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.6));display:grid;place-items:center;position:relative}
 
-/* Why choose: integrate dashboard visually into list using overlapping panels */
-.choose-composed{display:grid;grid-template-columns:1fr 480px;gap:28px;align-items:start}
-.choose-right{position:relative}
-.choose-right .mini-dashboard{position:sticky;top:80px}
+.story-illustration{width:100%;height:260px;border-radius:12px}
 
-/* Impact: more asymmetric grid and spacing */
-.impact-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:22px}
-.impact-card{padding:22px;border-radius:12px}
-.impact-card .num{font-size:48px}
+/* small product-like preview overlay on illustration to give SaaS feel */
+.story-visual::before{
+  content:"";
+  position:absolute;
+  right:30px;
+  top:40px;
+  width:120px;
+  height:68px;
+  border-radius:12px;
+  background:linear-gradient(180deg,rgba(255,255,255,0.95),rgba(240,246,255,0.9));
+  transform:rotate(-6deg);
+}
+.story-visual::after{
+  content:"";
+  position:absolute;
+  right:42px;
+  top:56px;
+  width:40px;height:10px;border-radius:6px;background:linear-gradient(90deg,var(--primary),var(--primary-hover));opacity:0.95;transform:rotate(-6deg);
+}
 
+.story-copy .section-title{margin:0 0 8px;font-size:22px;font-weight:900}
+.story-block .lead{margin:0 0 14px;color:var(--text-muted)}
+/* Story flow (Problem → Solution → Result) */
+.story-flow{display:flex;flex-direction:column;gap:14px;margin-top:12px}
+.flow-step{display:flex;gap:12px;align-items:flex-start}
+.flow-icon{width:56px;height:56px;border-radius:12px;background:linear-gradient(180deg,rgba(37,99,235,0.06),transparent);display:grid;place-items:center;font-size:22px}
+.flow-content{display:flex;flex-direction:column}
+.flow-title{font-weight:900;margin-bottom:6px}
+.flow-text{color:var(--text-muted)}
+.flow-connector{font-size:22px;color:var(--primary);display:flex;align-items:center;justify-content:center;margin:6px 0}
+
+/* ---------- MISSION ---------- */
+.mission-section{padding:48px 0}
+.mission-inner{display:flex;gap:48px;align-items:stretch}
+.mission-visual{flex:0 0 380px;display:flex;flex-direction:column;gap:18px}
+.mission-visual .metric-card{background:var(--white);border:1px solid var(--borders);border-radius:14px;padding:18px}
+.metric-main{padding:26px;border-radius:16px;position:relative}
+.metric-main .metric-value{font-size:72px;font-weight:900;color:var(--primary);line-height:1}
+.metric-main .metric-label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px}
+.metric-main .metric-meta{color:var(--text-muted);font-size:13px;margin-top:8px}
+
+/* subtle sparkline ornament */
+.metric-main .spark{position:absolute;right:18px;top:18px;width:88px;height:26px;border-radius:8px;background:linear-gradient(90deg,rgba(37,99,235,0.12),rgba(29,78,216,0.06));opacity:0.9}
+.metric-small{display:flex;flex-direction:column;justify-content:center;align-items:flex-start}
+.mission-row{display:flex;gap:12px}
+.metric-small .metric-value{font-size:20px;font-weight:900;color:var(--primary)}
+.metric-meta{color:var(--text-muted);font-size:13px;margin-top:8px}
+
+/* Integrated mission dashboard card (single component) */
+.mission-dashboard-card{flex:0 0 420px;background:linear-gradient(180deg,#fff,rgba(240,246,255,0.9));padding:18px;border-radius:12px;display:flex;flex-direction:column;gap:12px}
+.dash-top{display:flex;justify-content:space-between;align-items:flex-start}
+.dash-left{display:flex;flex-direction:column;gap:6px}
+.dash-value{font-size:44px;font-weight:900;color:var(--primary)}
+.dash-sub{font-size:14px;font-weight:800;margin-left:6px;color:var(--text-muted)}
+.dash-note{color:var(--text-muted);font-size:13px}
+.dash-chip{background:linear-gradient(90deg,rgba(37,99,235,0.06),transparent);padding:6px 10px;border-radius:12px;font-weight:800;color:var(--primary)}
+.dash-bottom{display:flex;gap:12px;margin-top:6px}
+.dash-cell{flex:1;background:transparent;padding:12px;border-radius:10px}
+.cell-num{font-size:20px;font-weight:900;color:var(--primary)}
+.cell-label{color:var(--text-muted);margin-top:6px}
+
+
+/* ---------- VALUES MOSAIC ---------- */
+.values-section{padding:48px 0}
+.values-mosaic{display:grid;grid-template-columns:repeat(6,1fr);grid-auto-rows:140px;gap:18px}
+.mosaic-large{grid-column:1 / span 3;background:linear-gradient(180deg,#fff,#eef8ff);padding:26px;border-radius:16px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}
+.mosaic-large.alt{grid-column:4 / span 3;background:linear-gradient(180deg,#eef6ff,#ffffff);padding:22px;border-radius:16px;position:relative;overflow:hidden}
+.mosaic-large::before{content:"";position:absolute;right:-40px;top:-24px;width:220px;height:220px;background:radial-gradient(circle at 30% 20%, rgba(37,99,235,0.06), transparent 40%);transform:rotate(18deg);opacity:0.9}
+.mosaic-large.alt::before{content:"";position:absolute;left:-36px;bottom:-40px;width:200px;height:200px;background:radial-gradient(circle at 70% 80%, rgba(29,78,216,0.06), transparent 40%);transform:rotate(-8deg);opacity:0.9}
+.mosaic-small{grid-column:1 / span 2;background:linear-gradient(180deg,#ffffff,#f8fbff);padding:16px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.mosaic-small.tall{grid-row:span 2;padding:22px}
+.mosaic-small.short{grid-row:auto;padding:14px}
+.mosaic-large .icon,.mosaic-small .icon{font-size:40px;margin-bottom:12px;color:var(--primary)}
+.mosaic-large .gloss{position:absolute;right:10px;top:8px;width:88px;height:34px;background:linear-gradient(90deg,rgba(255,255,255,0.7),rgba(255,255,255,0.2));border-radius:10px;opacity:0.9}
+.mosaic-large .gloss.alt{left:10px;right:auto;background:linear-gradient(90deg,rgba(255,255,255,0.12),rgba(255,255,255,0.02))}
+.mosaic-large h3{margin:0 0 8px;font-size:20px}
+.mosaic-large p{margin:0;color:var(--text-muted)}
+
+/* Alternative mosaic layout: left column + right column for stronger personality */
+.values-mosaic{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.mosaic-col-left{display:flex;flex-direction:column;gap:18px}
+.mosaic-col-right{display:flex;flex-direction:column;gap:18px}
+.mosaic-horizontal{display:flex;gap:12px;align-items:center;background:linear-gradient(180deg,#fff,#f6fbff);padding:16px;border-radius:12px}
+.mosaic-large .icon,.mosaic-small .icon{font-size:44px;margin-bottom:12px;color:var(--primary);width:64px;height:64px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+
+/* ---------- HOW IT WORKS / TIMELINE ---------- */
+.how-section{padding:48px 0}
+.how-section{position:relative}
+.narrative-timeline{list-style:none;padding:0;margin:18px 0 0;display:grid;grid-template-columns:repeat(4,1fr);gap:22px;position:relative}
+.narrative-timeline::before{content:"";position:absolute;left:72px;right:72px;top:50px;height:2px;background:linear-gradient(90deg,rgba(37,99,235,0.12),rgba(37,99,235,0.04));border-radius:2px}
+.narrative-timeline li{display:flex;gap:16px;align-items:flex-start;background:linear-gradient(180deg,#fff,#fbfdff);padding:18px;border-radius:12px;position:relative;padding-left:120px}
+.narrative-timeline li .step-number{position:absolute;left:24px;top:50%;transform:translateY(-50%);z-index:3;width:64px;height:64px}
+.narrative-timeline li::after{content:"";position:absolute;left:92px;top:50%;width:14px;height:14px;background:linear-gradient(180deg,var(--primary),var(--primary-hover));border-radius:50%;transform:translateY(-50%)}
+.narrative-timeline li:nth-child(odd){transform:translateY(10px)}
+.narrative-timeline li:nth-child(even){transform:translateY(-8px)}
+.step-number{width:64px;height:64px;border-radius:50%;background:linear-gradient(180deg,var(--primary),var(--primary-hover));display:grid;place-items:center;color:#fff;font-weight:900}
+
+/* timeline SVG path styling to blend with the rail */
+.timeline-path{position:absolute;left:0;right:0;height:100px;top:38px;pointer-events:none;overflow:visible}
+.timeline-path path{ /* no visual filters to keep composition clean */}
+.step-number{width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,var(--primary),var(--primary-hover));display:grid;place-items:center;color:#fff;font-weight:900}
+.step-copy h4{margin:0 0 6px}
+.step-copy p{margin:0;color:var(--text-muted)}
+
+/* remove hover effects to honour clean composition requirement */
+.narrative-timeline li:hover{transform:none}
+
+/* ---------- WHY SKILLBRIDGE (DASHBOARD) ---------- */
+.why-section{padding:48px 0}
+.why-layout{display:grid;grid-template-columns:420px 1fr;gap:28px;align-items:start}
+.board-integrated{background:linear-gradient(180deg,#fff,#f8fbff);padding:18px;border-radius:12px;display:flex;gap:12px}
+.board-metric{flex:0 0 140px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
+.big-val{font-size:44px;font-weight:900;color:var(--primary)}
+.big-label{color:var(--text-muted);font-size:13px}
+.board-stats{flex:1;display:flex;flex-direction:column;gap:10px}
+.stat-row{height:10px;background:linear-gradient(90deg,rgba(37,99,235,0.12),rgba(29,78,216,0.06));border-radius:6px;overflow:hidden}
+.stat-row .bar{height:10px;background:linear-gradient(90deg,var(--primary),var(--primary-hover))}
+.checks-list{list-style:none;padding:0;margin-top:6px;display:grid;gap:8px}
+.checks-list li{font-weight:700}
+
+/* ---------- IMPACT ---------- */
+.impact-section{padding:48px 0}
+.impact-composition{display:flex;gap:20px;align-items:flex-start}
+.impact-main{flex:2;background:linear-gradient(180deg,#fff,#eef8ff);padding:40px;border-radius:18px;display:flex;flex-direction:column;justify-content:center}
+.impact-main .impact-num{font-size:64px;font-weight:900;color:var(--primary)}
+.impact-main .impact-label{color:var(--text-muted);margin-top:8px}
+.impact-side{flex:1;display:grid;gap:12px}
+.impact-item{background:linear-gradient(180deg,#ffffff,#f7fbff);padding:18px;border-radius:12px;font-weight:900;display:flex;flex-direction:column}
+.impact-item.small{font-size:20px;padding:14px}
+.impact-item .label{color:var(--text-muted);margin-top:8px}
+
+/* ---------- FINAL CTA ---------- */
+.final-cta{margin:62px 0 92px;padding:46px;border-radius:14px;background:linear-gradient(90deg,var(--primary),var(--primary-hover));color:#fff}
+.final-cta .cta-inner{max-width:980px;margin:0 auto;display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.final-cta h2{margin:0;font-size:32px}
+.final-cta .lead{opacity:0.95}
+.final-cta .cta-actions{display:flex;gap:12px;margin-top:10px}
+.final-cta .btn-primary{background:#fff;color:var(--primary)}
+
+/* Section title accent */
+.section-title{font-size:20px;font-weight:900;margin:0 0 8px;position:relative}
+.section-title::after{content:"";position:absolute;left:0;bottom:-12px;height:6px;width:56px;border-radius:6px;background:linear-gradient(90deg,rgba(37,99,235,0.95),rgba(29,78,216,0.85));opacity:0.14}
+
+/* Reduce animations on About but keep subtlety */
+.about-page *{transition:opacity 160ms ease, transform 160ms ease}
+
+/* RESPONSIVE */
+@media (max-width:1100px){
+  .hero-section{grid-template-columns:1fr;gap:28px}
+  .story-grid{grid-template-columns:1fr}
+  .mission-inner{flex-direction:column}
+  .why-layout{grid-template-columns:1fr}
+  .impact-composition{grid-template-columns:1fr 1fr}
+  .narrative-timeline{grid-template-columns:repeat(2,1fr)}
+}
 
 @media (max-width:720px){
-  .values-grid{grid-template-columns:1fr}
-  .timeline{grid-template-columns:1fr}
-  .impact-grid{grid-template-columns:1fr}
-  .about-hero-right{display:none}
+  .about-viewport{padding:16px}
+  .hero-title{font-size:32px}
+  .stat-value{font-size:52px}
+  .narrative-timeline{grid-template-columns:1fr}
+  .impact-composition{grid-template-columns:1fr}
 }
+
