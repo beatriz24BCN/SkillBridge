@@ -22,5 +22,22 @@ main{padding:32px}
 
 .container{max-width:1100px;margin:0 auto;padding:0 20px}
 
+.btn-primary{
+  background:var(--primary);
+  color:#fff;
+  border:0;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  transition:background-color .2s ease;
+}
+
+.btn-primary:hover{
+  background:var(--primary-hover);
+  color:#fff;
+}
+
 /* Utility */
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
