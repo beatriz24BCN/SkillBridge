@@ -1,6 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react'
-// react-rnd temporarily disabled due to Vite compatibility (process undefined)
 import './AIAssistant.css'
+import ChatMessages from './ChatMessages'
+import ChatInput from './ChatInput'
+import QuickPrompts from './QuickPrompts'
+import Welcome from './Welcome'
+import TypingIndicator from './TypingIndicator'
+import { getAIResponse } from './getAIResponse'
 
 function nowHHmm(date = new Date()) {
   return new Intl.DateTimeFormat('default', { hour: '2-digit', minute: '2-digit', hour12: false }).format(date)
@@ -10,105 +15,87 @@ const DEFAULT_WIDTH = 450
 const DEFAULT_HEIGHT = 700
 
 export default function AIAssistant({ open = false, onClose = () => {} }) {
-  console.log('AIAssistant rendered', { open })
   const [minimized, setMinimized] = useState(false)
-  const [pos, setPos] = useState({ x: 0, y: 0 })
-  const [size, setSize] = useState({ width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT })
-  const panelRef = useRef(null)
+  const [size] = useState({ width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT })
 
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
-  const [savedJobs, setSavedJobs] = useState(new Set())
+  const [isThinking, setIsThinking] = useState(false)
+  const bottomRef = useRef(null)
+  const inputRef = useRef(null)
+  const [statusText, setStatusText] = useState('')
 
-  useEffect(() => {
-    console.log('AIAssistant mounted', { open, minimized, pos })
-  }, [open, minimized])
-
-  // compute initial position from right/bottom when opened
-  useEffect(() => {
-    if (!open) return
-    const x = Math.max(40, window.innerWidth - size.width - 40)
-    const y = Math.max(40, window.innerHeight - size.height - 40)
-    setPos({ x, y })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
-
-  // auto-scroll
-  const chatRef = useRef(null)
-  useEffect(() => { scrollToBottom() }, [messages, minimized])
   function scrollToBottom() {
-    const el = chatRef.current
-    if (el) el.scrollTop = el.scrollHeight
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    }
   }
 
-  // drag/resize are handled by react-rnd (Rnd component)
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages, minimized, isThinking])
 
-  // keep compatibility with previous handlers (no-op when using Rnd)
-  function startDrag(e) { if (e && e.preventDefault) e.preventDefault() }
-  function startResize(e) { if (e && e.preventDefault) e.preventDefault() }
+  function createMessage(sender, text, suffix = sender === 'user' ? 'u' : 'a') {
+    return {
+      id: `${Date.now()}-${Math.random().toString(16).slice(2)}-${suffix}`,
+      sender,
+      text,
+      time: nowHHmm(new Date())
+    }
+  }
+
+  async function sendMessage(messageText) {
+    const text = messageText.trim()
+    if (!text) return
+
+    const userMsg = createMessage('user', text)
+    setMessages(prev => [...prev, userMsg])
+    setInput('')
+
+    setIsThinking(true)
+    try {
+      // start AI response and status sequence in parallel
+      const aiPromise = getAIResponse(text)
+
+      const statuses = ['Thinking...', 'Analyzing...', 'Responding...']
+      for (let s of statuses) {
+        setStatusText(s)
+        // show each status briefly
+        // allow the aiPromise to resolve concurrently
+        // but keep statuses visible for a short rhythm
+        // total ~900ms (300 each)
+        // await small delay
+        // eslint-disable-next-line no-await-in-loop
+        await new Promise(r => setTimeout(r, 300))
+      }
+
+      const aiRich = await aiPromise
+      const aiMsg = { ...createMessage('ai', ''), rich: aiRich }
+      setMessages(prev => [...prev, aiMsg])
+    } catch (error) {
+      const fallback = createMessage('ai', 'I had trouble generating a response. Please try again in a moment.')
+      setMessages(prev => [...prev, fallback])
+    } finally {
+      setIsThinking(false)
+      setStatusText('')
+    }
+  }
 
   function handleSend() {
-    const text = input.trim()
-    if (!text) return
-    const t = new Date()
-    const userMsg = { id: Date.now() + '-u', sender: 'user', text, time: nowHHmm(t) }
-    setMessages(m => [...m, userMsg])
-    setInput('')
-    // generate mock response
-    setTimeout(() => generateMockResponse(text), 600 + Math.floor(Math.random() * 300))
+    if (isThinking) return
+    void sendMessage(input)
   }
 
-  function pushAIMessage(obj) {
-    const t = new Date()
-    const msg = { id: Date.now() + '-a', sender: 'ai', time: nowHHmm(t), ...obj }
-    setMessages(m => [...m, msg])
+  function handleQuickPrompt(prompt) {
+    if (isThinking) return
+    // rellenar el input con la sugerencia para que el usuario pueda editar/enviar
+    setInput(prompt)
+    // focus en el textarea para que el usuario pueda empezar a escribir inmediatamente
+    setTimeout(() => {
+      if (inputRef.current && typeof inputRef.current.focus === 'function') inputRef.current.focus()
+    }, 50)
   }
 
-  function generateMockResponse(trigger) {
-    const q = trigger.toLowerCase()
-    if (q.includes('find jobs') || q.includes('jobs')) {
-      pushAIMessage({ text: 'Here are some matches I found for you:', kind: 'jobs', jobs: [
-        { id: 'j1', title: 'Frontend Developer', location: 'Barcelona (Remote)', salary: '€55K', match: '96%' },
-        { id: 'j2', title: 'UI Engineer', location: 'Madrid (Hybrid)', salary: '€60K', match: '93%' },
-        { id: 'j3', title: 'Frontend Engineer', location: 'Remote', salary: '€58K', match: '90%' }
-      ] })
-      return
-    }
-    if (q.includes('cv') || q.includes('resume')) {
-      pushAIMessage({ text: 'Suggestions:\n- Improve summary to focus on measurable impact.\n- Add a Projects section with links and results.\n- Expand skills with specific libraries and tools.\n- Include job-specific keywords.' })
-      return
-    }
-    if (q.includes('interview')) {
-      pushAIMessage({ text: 'Interview topics to practice:\n- React fundamentals and hooks\n- Core JavaScript and ES6+\n- Designing/consuming REST APIs\n- Communication and teamwork scenarios' })
-      return
-    }
-    if (q.includes('recommend') || q.includes('skills')) {
-      pushAIMessage({ text: 'Recommended skills to learn:\n- TypeScript\n- Node.js\n- Testing (Jest / Testing Library)\n- Docker\n- AWS (Basics)' })
-      return
-    }
-    // default echo
-    pushAIMessage({ text: "I'm here to help — try a quick action or ask me about jobs, your CV or interviews." })
-  }
-
-  function handleQuickAction(action) {
-    // simulate user click message
-    const text = action
-    const t = new Date()
-    const userMsg = { id: Date.now() + '-q', sender: 'user', text, time: nowHHmm(t) }
-    setMessages(m => [...m, userMsg])
-    setTimeout(() => generateMockResponse(action), 300)
-  }
-
-  function toggleSaveJob(jobId) {
-    setSavedJobs(prev => {
-      const s = new Set(prev)
-      if (s.has(jobId)) s.delete(jobId)
-      else s.add(jobId)
-      return s
-    })
-  }
-
-  // rendering
   const shouldShow = open || minimized
   if (!shouldShow) return null
 
@@ -125,7 +112,6 @@ export default function AIAssistant({ open = false, onClose = () => {} }) {
       {!minimized && (
         <div
           className="ai-panel"
-          ref={panelRef}
           style={{ position: 'fixed', right: 40, bottom: 40, width: size.width, height: size.height, zIndex: 9999 }}
         >
           <div className="ai-header">
@@ -148,52 +134,36 @@ export default function AIAssistant({ open = false, onClose = () => {} }) {
 
           <div className="ai-window">
             <div className="ai-body">
-              <div className="ai-quick-actions">
-                <button onClick={() => handleQuickAction('Find jobs for me')}>Find jobs for me</button>
-                <button onClick={() => handleQuickAction('Improve my CV')}>Improve my CV</button>
-                <button onClick={() => handleQuickAction('Prepare my interview')}>Prepare my interview</button>
-                <button onClick={() => handleQuickAction('Recommend skills to learn')}>Recommend skills to learn</button>
+              {messages.length === 0 ? (
+                <div className="ai-welcome-wrap">
+                  <Welcome onAction={actionId => {
+                    // map action to quick prompt text
+                    const map = {
+                      interview: 'Practice a React interview',
+                      cv: 'Improve my CV',
+                      match: 'Find jobs for me',
+                      linkedin: 'Improve my CV'
+                    }
+                    const text = map[actionId] || 'Practice a React interview'
+                    setInput(text)
+                    if (inputRef.current && typeof inputRef.current.focus === 'function') inputRef.current.focus()
+                  }} />
+                </div>
+              ) : null}
+
+              <div className="ai-chat">
+                <ChatMessages messages={messages} />
+                {isThinking && <TypingIndicator status={statusText} />}
+                <div ref={bottomRef} />
               </div>
 
-              <div className="ai-chat" ref={chatRef}>
-                {messages.map(msg => (
-                  <div key={msg.id} className={`ai-msg ${msg.sender}`}>
-                    <div className="ai-msg-text">{msg.text}</div>
-                    {msg.kind === 'jobs' && msg.jobs && (
-                      <div className="job-list">
-                        {msg.jobs.map(job => (
-                          <div className="job-card" key={job.id}>
-                            <div className="job-main">
-                              <div className="job-title">{job.title}</div>
-                              <div className="job-location">{job.location} • {job.salary}</div>
-                              <div className="job-meta">Match: {job.match}</div>
-                            </div>
-                            <div className="job-actions">
-                              <button
-                                className={`job-save ${savedJobs.has(job.id) ? 'saved' : ''}`}
-                                onClick={() => toggleSaveJob(job.id)}
-                              >
-                                {savedJobs.has(job.id) ? 'Saved' : 'Save Job'}
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    <div className="ai-time">{msg.time}</div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="ai-input-wrap">
-                <textarea
-                  className="ai-input"
-                  placeholder="Ask me about jobs, your CV, or interviews..."
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                />
-                <button className="ai-send" onClick={handleSend} aria-label="Send">➤</button>
-              </div>
+              <ChatInput
+                value={input}
+                onChange={setInput}
+                ref={inputRef}
+                onSend={handleSend}
+                disabled={isThinking}
+              />
             </div>
           </div>
         </div>
