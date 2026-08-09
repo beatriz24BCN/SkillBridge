@@ -10,12 +10,19 @@ const QUICK_PROMPTS = [
 
 export default function QuickPrompts({ onSelect, disabled = false }) {
   return (
-    <>
+    <div className="quick-prompts-wrap">
       {QUICK_PROMPTS.map(prompt => (
-        <button key={prompt} className="quick-prompt" onClick={() => onSelect(prompt)} disabled={disabled}>
-          {prompt}
+        <button
+          key={prompt}
+          className="quick-prompt-chip"
+          onClick={() => onSelect(prompt)}
+          disabled={disabled}
+          aria-label={prompt}
+        >
+          <span className="chip-icon">⚡</span>
+          <span className="chip-text">{prompt}</span>
         </button>
       ))}
-    </>
+    </div>
   )
 }

@@ -12,14 +12,22 @@ export default function Welcome({ onAction }) {
     <div className="ai-welcome">
       <div className="ai-welcome-greeting">Hi Beatriz <span className="wave">👋</span></div>
       <div className="ai-welcome-sub">Ready to prepare your next interview?</div>
-      <div className="ai-welcome-cards">
+
+      <div className="ai-welcome-cards grid-2">
         {cards.map(c => (
           <button key={c.id} className="ai-card" onClick={() => onAction(c.id)}>
-            <div className="ai-card-title">{c.title}</div>
-            <div className="ai-card-desc">{c.desc}</div>
+            <div className="ai-card-row">
+              <div className="ai-card-icon" aria-hidden>{c.id === 'interview' ? '🎯' : c.id === 'cv' ? '📄' : c.id === 'match' ? '💼' : '🔗'}</div>
+              <div>
+                <div className="ai-card-title">{c.title}</div>
+                <div className="ai-card-desc">{c.desc}</div>
+              </div>
+            </div>
           </button>
         ))}
       </div>
+
+      <div className="ai-welcome-foot">You can also ask me anything about your career.</div>
     </div>
   )
 }

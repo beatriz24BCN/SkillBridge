@@ -19,7 +19,9 @@ const ChatInput = forwardRef(function ChatInput({ value, onChange, onSend, disab
         onKeyDown={handleKeyDown}
         disabled={disabled}
       />
-      <button className="ai-send" onClick={onSend} aria-label="Send" disabled={disabled}>➤</button>
+      <button className="ai-send" onClick={onSend} aria-label="Send" disabled={disabled || !value || !value.trim()}>
+        ➤
+      </button>
     </div>
   )
 })

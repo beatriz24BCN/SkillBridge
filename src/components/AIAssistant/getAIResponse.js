@@ -61,15 +61,29 @@ function selectResponse(message) {
     )
   }
 
+  if (text.includes('jwt')) {
+    return {
+      title: 'JWT explained simply',
+      subtitle: 'Compact token-based authentication for distributed apps',
+      bullets: [
+        'Header — metadata about signing algorithm.',
+        'Payload — claims about the user (not encrypted by default).',
+        'Signature — verifies the token was issued by a trusted party.'
+      ],
+      advice: 'In interviews, contrast JWT with session-based auth (JWT: stateless, scalable; Sessions: server state, easier to revoke).',
+      badges: ['Auth', 'Security', 'Web']
+    }
+  }
+
   // Default rich guidance
   return makeRichResponse(
     'How can I help today?',
     [
-      'Interview prep — React, JavaScript, system design.',
-      'CV advice and improvements.',
-      'Job search strategy and tailored applications.'
+      '🎯 Interview preparation — React, JavaScript, behavioral.',
+      '📄 CV advice and improvements.',
+      '💼 Job search strategy and tailored applications.'
     ],
-    'Try one of the quick actions or ask a specific question.'
+    'Choose a quick action or ask me anything about your career.'
   )
 }
 

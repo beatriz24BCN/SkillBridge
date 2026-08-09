@@ -16,7 +16,11 @@ const DEFAULT_HEIGHT = 700
 
 export default function AIAssistant({ open = false, onClose = () => {} }) {
   const [minimized, setMinimized] = useState(false)
-  const [size] = useState({ width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT })
+  const [size, setSize] = useState(() => {
+    const w = Math.min(DEFAULT_WIDTH, Math.max(320, window.innerWidth - 48))
+    const h = Math.min(DEFAULT_HEIGHT, Math.max(360, window.innerHeight - 96))
+    return { width: w, height: h }
+  })
 
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
@@ -30,6 +34,17 @@ export default function AIAssistant({ open = false, onClose = () => {} }) {
       bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
     }
   }
+
+  useEffect(() => {
+    function onResize() {
+      setSize({
+        width: Math.min(DEFAULT_WIDTH, Math.max(320, window.innerWidth - 48)),
+        height: Math.min(DEFAULT_HEIGHT, Math.max(360, window.innerHeight - 96))
+      })
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   useEffect(() => {
     scrollToBottom()
@@ -122,9 +137,10 @@ export default function AIAssistant({ open = false, onClose = () => {} }) {
                 <div className="ai-sub">Your intelligent career companion</div>
               </div>
             </div>
+
             <div className="ai-header-right">
-              <div className="ai-status"><span className="dot"/> AI Assistant Online</div>
               <div className="ai-controls">
+                <div className="ai-status"><span className="dot"/> <span className="status-text">AI Assistant Online</span></div>
                 <button className="ctrl" onClick={() => setMinimized(true)} aria-label="Minimize">─</button>
                 <button className="ctrl" onClick={() => setMinimized(false)} aria-label="Restore">▢</button>
                 <button className="ctrl close" onClick={() => onClose()} aria-label="Close">✕</button>
@@ -148,6 +164,9 @@ export default function AIAssistant({ open = false, onClose = () => {} }) {
                     setInput(text)
                     if (inputRef.current && typeof inputRef.current.focus === 'function') inputRef.current.focus()
                   }} />
+                  <div style={{ marginTop: 8 }}>
+                    <QuickPrompts onSelect={handleQuickPrompt} disabled={isThinking} />
+                  </div>
                 </div>
               ) : null}
 
