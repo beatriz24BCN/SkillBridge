@@ -37,7 +37,7 @@ export default function Dashboard(){
                     <div className="pc-percent">{progress}%</div>
                   </div>
                   <div className="pc-action">
-                    <Link to="/profile/edit" className="btn-primary">Complete profile</Link>
+                    <Link to="/profile/edit" className="auth-link">Complete profile</Link>
                   </div>
                 </div>
                 <div className="progress-bar"><div className="progress-fill" style={{width: `${progress}%`}}/></div>
@@ -84,7 +84,7 @@ export default function Dashboard(){
                 ))}
               </div>
               <div style={{marginTop:12}}>
-                <Link to="/profile/edit" className="btn-primary">Improve my profile</Link>
+                <Link to="/profile/edit" className="auth-link">Improve my profile</Link>
               </div>
             </section>
           </div>
