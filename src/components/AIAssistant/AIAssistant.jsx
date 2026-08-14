@@ -26,13 +26,33 @@ export default function AIAssistant({ open = false, onClose = () => {} }) {
   const [input, setInput] = useState('')
   const [isThinking, setIsThinking] = useState(false)
   const bottomRef = useRef(null)
+  const chatRef = useRef(null)
   const inputRef = useRef(null)
   const [statusText, setStatusText] = useState('')
 
+  // Diagnostic: log input state changes to trace where value is lost (temporary)
+  React.useEffect(() => {
+    console.log('[AI Assistant] input state:', input)
+  }, [input])
+
   function scrollToBottom() {
-    if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    // Prefer scrolling the chat container directly so the document/window
+    // does not get scrolled and the header remains visible.
+    if (chatRef.current) {
+      try {
+        chatRef.current.scrollTo({ top: chatRef.current.scrollHeight, behavior: 'smooth' })
+        return
+      } catch (e) {
+        // fallback to instant assignment if smooth option not supported
+        chatRef.current.scrollTop = chatRef.current.scrollHeight
+        return
+      }
     }
+
+    // If the chat container isn't available, do not attempt to scroll the
+    // document or other ancestors. We intentionally avoid using
+    // `bottomRef.current.scrollIntoView()` because that may cause the
+    // browser to scroll the document/window instead of the chat container.
   }
 
   useEffect(() => {
@@ -103,11 +123,27 @@ export default function AIAssistant({ open = false, onClose = () => {} }) {
 
   function handleQuickPrompt(prompt) {
     if (isThinking) return
+    // Diagnostic log to verify clicks reach the handler
+    // (temporary - remove after debugging)
+    console.log('[AI Assistant] Quick Prompt clicked:', prompt)
     // rellenar el input con la sugerencia para que el usuario pueda editar/enviar
     setInput(prompt)
     // focus en el textarea para que el usuario pueda empezar a escribir inmediatamente
     setTimeout(() => {
-      if (inputRef.current && typeof inputRef.current.focus === 'function') inputRef.current.focus()
+      if (inputRef.current && typeof inputRef.current.focus === 'function') {
+        try {
+          inputRef.current.focus({ preventScroll: true })
+        } catch (e) {
+          // Older environments may not support the options object.
+          // Preserve the document scroll position if calling focus()
+          // scrolls the page, restoring it immediately afterwards.
+          const prevY = typeof window !== 'undefined' ? window.scrollY || window.pageYOffset : 0
+          inputRef.current.focus()
+          if (typeof window !== 'undefined') {
+            window.scrollTo(0, prevY)
+          }
+        }
+      }
     }, 50)
   }
 
@@ -127,7 +163,7 @@ export default function AIAssistant({ open = false, onClose = () => {} }) {
       {!minimized && (
         <div
           className="ai-panel"
-          style={{ position: 'fixed', right: 40, bottom: 40, width: size.width, height: size.height, zIndex: 9999 }}
+          style={{ position: 'fixed', right: 40, top: 84, bottom: 24, width: size.width, zIndex: 9999 }}
         >
           <div className="ai-header">
             <div className="ai-header-left">
@@ -150,27 +186,37 @@ export default function AIAssistant({ open = false, onClose = () => {} }) {
 
           <div className="ai-window">
             <div className="ai-body">
-              {messages.length === 0 ? (
-                <div className="ai-welcome-wrap">
-                  <Welcome onAction={actionId => {
-                    // map action to quick prompt text
-                    const map = {
-                      interview: 'Practice a React interview',
-                      cv: 'Improve my CV',
-                      match: 'Find jobs for me',
-                      linkedin: 'Improve my CV'
-                    }
-                    const text = map[actionId] || 'Practice a React interview'
-                    setInput(text)
-                    if (inputRef.current && typeof inputRef.current.focus === 'function') inputRef.current.focus()
-                  }} />
-                  <div style={{ marginTop: 8 }}>
-                    <QuickPrompts onSelect={handleQuickPrompt} disabled={isThinking} />
+              <div className="ai-chat" ref={chatRef}>
+                {messages.length === 0 && (
+                  <div className="ai-welcome-wrap">
+                    <Welcome onAction={actionId => {
+                      // map action to quick prompt text
+                      const map = {
+                        interview: 'Practice a React interview',
+                        cv: 'Improve my CV',
+                        match: 'Find jobs for me',
+                        linkedin: 'Improve my CV'
+                      }
+                      const text = map[actionId] || 'Practice a React interview'
+                      setInput(text)
+                      if (inputRef.current && typeof inputRef.current.focus === 'function') {
+                        try {
+                          inputRef.current.focus({ preventScroll: true })
+                        } catch (e) {
+                          const prevY = typeof window !== 'undefined' ? window.scrollY || window.pageYOffset : 0
+                          inputRef.current.focus()
+                          if (typeof window !== 'undefined') {
+                            window.scrollTo(0, prevY)
+                          }
+                        }
+                      }
+                    }} />
+                    <div style={{ marginTop: 8 }}>
+                      <QuickPrompts onSelect={handleQuickPrompt} disabled={isThinking} />
+                    </div>
                   </div>
-                </div>
-              ) : null}
+                )}
 
-              <div className="ai-chat">
                 <ChatMessages messages={messages} />
                 {isThinking && <TypingIndicator status={statusText} />}
                 <div ref={bottomRef} />
