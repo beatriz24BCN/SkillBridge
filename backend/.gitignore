@@ -1,0 +1,13 @@
+# Local env
+.env
+
+# Ignore local virtualenv created inside backend
+ .venv/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyc
+
+# Migrate DB for local sqlite dev
+dev.db
