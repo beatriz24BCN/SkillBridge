@@ -7,3 +7,4 @@ tmp/
 # Optional: editor and OS files
 .vscode/
 .DS_Store
+.venv/
