@@ -1,5 +1,10 @@
 import os
+from dotenv import load_dotenv
 from app import create_app
+
+
+# Load local .env file if present
+load_dotenv()
 
 
 def main():
