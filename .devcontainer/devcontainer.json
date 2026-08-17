@@ -1,0 +1,7 @@
+{
+  "name": "SkillBridge Dev Container",
+  "dockerComposeFile": ["docker-compose.yml"],
+  "service": "workspace",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose"
+}
