@@ -12,8 +12,8 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # JWT secret key - default is intentionally a placeholder
-    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "please-change-me")
+    # JWT secret key must be provided via environment variable. No default.
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 
     # Comma-separated origins
     CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173")
@@ -32,4 +32,9 @@ def validate_config():
         raise RuntimeError(
             "DATABASE_URL is not set. Set DATABASE_URL to a PostgreSQL URI. "
             "Example: postgresql+psycopg://username:password@localhost:5432/skillbridge"
+        )
+    # Require JWT secret key to be explicitly set via environment
+    if not Config.JWT_SECRET_KEY:
+        raise RuntimeError(
+            "JWT_SECRET_KEY is not set. Set the JWT_SECRET_KEY environment variable with a secure secret."
         )

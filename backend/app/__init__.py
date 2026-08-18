@@ -1,7 +1,7 @@
 import os
 from flask import Flask, jsonify
 
-from .config import Config
+from .config import Config, validate_config
 from .extensions import db, migrate, jwt, cors
 
 
@@ -10,12 +10,8 @@ def create_app():
 
     # Load config
     app.config.from_object(Config)
-
-    # Require DATABASE_URL to be set
-    if not app.config.get("SQLALCHEMY_DATABASE_URI"):
-        raise RuntimeError(
-            "DATABASE_URL no está configurada. Define la variable de entorno DATABASE_URL."
-        )
+    # Validate required configuration (DATABASE_URL and JWT_SECRET_KEY)
+    validate_config()
 
     # Initialize extensions
     db.init_app(app)
@@ -31,8 +27,12 @@ def create_app():
 
     # Register blueprints
     from .routes.auth import auth_bp
-
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
+
+    # Users routes (requires JWT)
+    from .routes.users import users_bp
+
+    app.register_blueprint(users_bp, url_prefix="/api/users")
 
     # Health check
     @app.route("/api/health", methods=["GET"])

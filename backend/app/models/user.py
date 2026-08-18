@@ -21,5 +21,21 @@ class User(db.Model):
     def check_password(self, password: str) -> bool:
         return check_password_hash(self.password_hash, password)
 
+    def to_dict(self, include_updated: bool = True) -> dict:
+        """Serialize the user for public API responses.
+
+        Never include sensitive fields such as `password_hash`.
+        """
+        data = {
+            "id": self.id,
+            "email": self.email,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "created_at": None if not self.created_at else self.created_at.isoformat(),
+        }
+        if include_updated:
+            data["updated_at"] = None if not self.updated_at else self.updated_at.isoformat()
+        return data
+
     def __repr__(self):
         return f"<User {self.email}>"
