@@ -3,5 +3,10 @@
   "dockerComposeFile": ["docker-compose.yml"],
   "service": "workspace",
   "workspaceFolder": "/workspace",
-  "shutdownAction": "stopCompose"
+  "shutdownAction": "stopCompose",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    }
+  }
 }
