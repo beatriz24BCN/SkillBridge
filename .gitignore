@@ -8,3 +8,6 @@ tmp/
 .vscode/
 .DS_Store
 .venv/
+
+# Ignore Vite's build cache inside node_modules
+node_modules/.vite/
