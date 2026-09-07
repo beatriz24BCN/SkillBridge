@@ -1,4 +1,9 @@
 import os
+from dotenv import load_dotenv
+
+# Load .env into environment early so Config can read DATABASE_URL when
+# the application or Flask CLI (flask) imports the config module.
+load_dotenv()
 
 
 class Config:
