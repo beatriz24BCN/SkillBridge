@@ -34,6 +34,10 @@ def create_app():
 
     app.register_blueprint(users_bp, url_prefix="/api/users")
 
+    # Jobs routes
+    from .routes.jobs import jobs_bp
+    app.register_blueprint(jobs_bp, url_prefix="/api/jobs")
+
     # Health check
     @app.route("/api/health", methods=["GET"])
     def health():
