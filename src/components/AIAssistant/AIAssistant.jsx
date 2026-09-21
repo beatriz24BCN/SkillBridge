@@ -32,7 +32,6 @@ export default function AIAssistant({ open = false, onClose = () => {} }) {
 
   // Diagnostic: log input state changes to trace where value is lost (temporary)
   React.useEffect(() => {
-    console.log('[AI Assistant] input state:', input)
   }, [input])
 
   function scrollToBottom() {
@@ -123,9 +122,6 @@ export default function AIAssistant({ open = false, onClose = () => {} }) {
 
   function handleQuickPrompt(prompt) {
     if (isThinking) return
-    // Diagnostic log to verify clicks reach the handler
-    // (temporary - remove after debugging)
-    console.log('[AI Assistant] Quick Prompt clicked:', prompt)
     // rellenar el input con la sugerencia para que el usuario pueda editar/enviar
     setInput(prompt)
     // focus en el textarea para que el usuario pueda empezar a escribir inmediatamente

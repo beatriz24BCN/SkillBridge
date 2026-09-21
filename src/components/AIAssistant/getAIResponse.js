@@ -87,8 +87,65 @@ function selectResponse(message) {
   )
 }
 
+function genSessionId() {
+  // simple random id for session; persisted in sessionStorage for the chat session
+  try {
+    const existing = sessionStorage.getItem('ai_session_id')
+    if (existing) return existing
+    const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`
+    sessionStorage.setItem('ai_session_id', id)
+    return id
+  } catch (e) {
+    return `${Date.now()}-${Math.random().toString(16).slice(2)}`
+  }
+}
+
+function findToken() {
+  try {
+    const keys = ['token', 'authToken', 'access_token', 'jwt', 'jwt_token', 'sb_token']
+    for (const k of keys) {
+      const v = localStorage.getItem(k)
+      if (v) return v
+    }
+    return null
+  } catch (e) {
+    return null
+  }
+}
+
 export async function getAIResponse(message) {
-  // Simulate network + processing latency while keeping an async API shape.
-  await delay(1000)
-  return selectResponse(message)
+  // Primary: call backend endpoint
+  const apiBase = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL)
+    ? import.meta.env.VITE_API_URL.replace(/\/$/, '')
+    : ''
+
+  const sessionId = genSessionId()
+  const token = findToken()
+
+  try {
+    const res = await fetch(`${apiBase}/api/ai/chat`, {
+      method: 'POST',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, token ? { Authorization: `Bearer ${token}` } : {}),
+      body: JSON.stringify({ message, sessionId })
+    })
+    if (!res.ok) {
+      // Map known HTTP errors to friendly messages (no sensitive info)
+      if (res.status === 401) {
+        return { title: null, subtitle: "Your session has expired. Please log in again.", bullets: [], advice: '' }
+      }
+      if (res.status === 400) {
+        return { title: null, subtitle: "Please enter a valid message.", bullets: [], advice: '' }
+      }
+      // 500 or others
+      return { title: null, subtitle: "Sorry, I couldn't process your request right now. Please try again.", bullets: [], advice: '' }
+    }
+
+    const data = await res.json()
+    // Map backend response to the frontend rich shape. Place the plain text into subtitle.
+    const text = (data && (data.text || data.reply || data.message)) || ''
+    return { title: null, subtitle: text, bullets: [], advice: '', _meta: data }
+  } catch (err) {
+    // Network or other failure: do NOT fallback to frontend mock. Return a friendly connection error.
+    return { title: null, subtitle: "Sorry, I couldn't connect to the assistant right now. Please try again.", bullets: [], advice: '' }
+  }
 }

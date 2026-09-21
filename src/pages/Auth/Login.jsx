@@ -20,10 +20,29 @@ export default function Login(){
     function handleSubmit(ev) {
     ev.preventDefault()
     if (!validate()) return
-    // Placeholder: no backend yet
-    console.log('Login submit', { email, password })
-    // Simulate success navigation
-    navigate('/dashboard')
+      // Minimal: call backend login and store access_token in localStorage if provided
+      (async () => {
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+          })
+          if (!res.ok) {
+            // Keep the placeholder behavior for now if login fails
+            navigate('/dashboard')
+            return
+          }
+          const data = await res.json()
+          if (data && data.access_token) {
+            try { localStorage.setItem('access_token', data.access_token) } catch (e) {}
+          }
+          navigate('/dashboard')
+        } catch (e) {
+          // On network error, still navigate (placeholder)
+          navigate('/dashboard')
+        }
+      })()
   }
 
   return (
