@@ -1,20 +1,35 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import CompanyCard from '../components/CompanyCard/CompanyCard'
 import './Companies.css'
-
-const mockCompanies = [
-  {id:1,name:'Google',logo:'G',industry:'Technology',headquarters:'Mountain View',openings:48,size:'100k+',aiScore:95,badges:['Hiring Now','AI Verified'],description:'Search, ads, cloud and AI products building the future.',tech:['React','Python','Go']},
-  {id:2,name:'Microsoft',logo:'M',industry:'Technology',headquarters:'Redmond',openings:52,size:'180k+',aiScore:92,badges:['Top Employer'],description:'Productivity tools, cloud and developer platforms.',tech:['C#','TypeScript','Azure']},
-  {id:3,name:'Spotify',logo:'S',industry:'Media',headquarters:'Stockholm',openings:12,size:'9k+',aiScore:88,badges:['Remote Friendly'],description:'Music streaming and audio discovery at scale.',tech:['Python','Kubernetes','Go']},
-  {id:4,name:'Stripe',logo:'St',industry:'Fintech',headquarters:'San Francisco',openings:26,size:'7k+',aiScore:94,badges:['Fast Growing','AI Verified'],description:'Payments infrastructure for the internet.',tech:['Ruby','TypeScript','Go']},
-  {id:5,name:'Notion',logo:'N',industry:'Productivity',headquarters:'San Francisco',openings:8,size:'500+',aiScore:86,badges:['Top Employer'],description:'All-in-one workspace for teams.',tech:['React','Electron','Node']},
-  {id:6,name:'Airbnb',logo:'A',industry:'Travel',headquarters:'San Francisco',openings:30,size:'8k+',aiScore:90,badges:['Hiring Now','Remote Friendly'],description:'Live and travel experiences worldwide.',tech:['React','Ruby','AWS']},
-  {id:7,name:'Shopify',logo:'Sh',industry:'E-commerce',headquarters:'Ottawa',openings:22,size:'8k+',aiScore:89,badges:['Fast Growing'],description:'Commerce platform for businesses of all sizes.',tech:['Ruby','React','Kubernetes']},
-  {id:8,name:'GitHub',logo:'GH',industry:'Developer Tools',headquarters:'Remote',openings:18,size:'2k+',aiScore:91,badges:['Remote Friendly','Top Employer'],description:'Hosts code and builds developer workflows.',tech:['TypeScript','React','GraphQL']},
-  {id:9,name:'OpenAI',logo:'O',industry:'AI Research',headquarters:'San Francisco',openings:40,size:'1k+',aiScore:98,badges:['AI Verified','Fast Growing'],description:'Advancing digital intelligence for humanity.',tech:['Python','PyTorch','CUDA']}
-]
+import * as companiesService from '../services/companiesService'
 
 export default function Companies(){
+  const [companies, setCompanies] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    let mounted = true
+    async function load(){
+      setLoading(true)
+      setError(null)
+      try{
+        const data = await companiesService.getCompanies()
+        if(mounted) setCompanies(data || [])
+      }catch(err){
+        if(err && err.status){
+          setError(err.body && err.body.error ? err.body.error : err.message)
+        } else {
+          setError(err.message || 'Error loading companies')
+        }
+      }finally{
+        if(mounted) setLoading(false)
+      }
+    }
+    void load()
+    return ()=> { mounted = false }
+  }, [])
+
   return (
     <div className="companies-page">
       <div className="container">
@@ -97,7 +112,10 @@ export default function Companies(){
             </div>
 
             <div className="companies-grid">
-              {mockCompanies.map(c=> (
+              {loading && <div className="muted">Loading companies…</div>}
+              {error && <div className="error" style={{marginBottom:12}}>{error}</div>}
+              {!loading && !error && companies.length === 0 && <div className="muted">No companies found.</div>}
+              {!loading && !error && companies.map(c=> (
                 <CompanyCard company={c} key={c.id} />
               ))}
             </div>

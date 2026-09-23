@@ -15,6 +15,8 @@ class Job(db.Model):
     modality = db.Column(db.String(50), nullable=True)
     contract_type = db.Column(db.String(50), nullable=True)
     company_id = db.Column(db.Integer, db.ForeignKey("companies.id"), nullable=False)
+    # ORM relationship to Company for convenient access (lazy-loaded)
+    company = db.relationship("Company", backref=db.backref("jobs", lazy="dynamic"))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
