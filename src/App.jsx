@@ -3,6 +3,8 @@ import { Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar/Navbar'
 import Home from './pages/Home'
 import Jobs from './pages/Jobs'
+import JobDetail from './pages/JobDetail'
+import JobForm from './pages/JobForm'
 import Companies from './pages/Companies'
 import Employers from './pages/Employers'
 import About from './pages/About'
@@ -25,6 +27,9 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/jobs" element={<Jobs />} />
+          <Route path="/jobs/new" element={<JobForm />} />
+          <Route path="/jobs/:id" element={<JobDetail />} />
+          <Route path="/jobs/:id/edit" element={<JobForm />} />
           <Route path="/companies" element={<Companies />} />
           <Route path="/employers" element={<Employers />} />
           <Route path="/about" element={<About />} />

@@ -6,11 +6,11 @@ export default function JobCard({ job }){
     <article className={`job-card ${job.featured? 'featured':''}`}>
       {job.featured && <div className="featured-badge">Featured</div>}
       <div className="job-card-row">
-          <div className="card-avatar">{job.logo || job.company.charAt(0)}</div>
+          <div className="card-avatar">{(job.raw && job.raw.company && job.raw.company.name && job.raw.company.name.charAt(0)) || job.logo || (job.company && job.company.charAt(0))}</div>
 
           <div className="card-content">
           <h3 className="job-title">{job.title}</h3>
-          <div className="job-company">{job.company} • <span className="job-location">{job.location}</span></div>
+          <div className="job-company">{(job.raw && job.raw.company && job.raw.company.name) || job.company} • <span className="job-location">{job.location}</span></div>
         </div>
 
           <div className="card-right">
