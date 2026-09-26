@@ -16,6 +16,8 @@ class User(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     # One-to-many relationship: a user can own multiple companies
     companies = db.relationship("Company", backref="owner", lazy="dynamic")
+    # One-to-many relationship: a user can have multiple applications
+    applications = db.relationship("Application", backref="applicant", lazy="dynamic")
 
     def set_password(self, password: str):
         self.password_hash = generate_password_hash(password)

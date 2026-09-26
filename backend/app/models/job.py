@@ -20,6 +20,9 @@ class Job(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    # One-to-many relationship: a job can have multiple applications
+    applications = db.relationship("Application", backref="job_ref", lazy="dynamic")
+
     def __init__(self, **kwargs):
         # Basic validation and normalization
         if "title" in kwargs and kwargs["title"] is not None:

@@ -60,6 +60,10 @@ def create_app():
     from .routes.companies import companies_bp
     app.register_blueprint(companies_bp, url_prefix="/api/companies")
 
+    # Applications routes
+    from .routes.applications import applications_bp
+    app.register_blueprint(applications_bp, url_prefix="/api/applications")
+
     # AI Assistant routes
     from .routes.ai import ai_bp
     app.register_blueprint(ai_bp, url_prefix="/api/ai")
