@@ -3,14 +3,17 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import './JobCard.css'
 import { useAuth } from '../../context/AuthContext'
 import { createApplication } from '../../services/applicationsService'
+import { removeSavedJob, saveJob } from '../../services/savedJobsService'
 
-export default function JobCard({ job, hideApply = false }){
+export default function JobCard({ job, hideApply = false, initiallySaved = false, onUnsaved }){
   const { isAuthenticated } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [applying, setApplying] = useState(false)
   const [applied, setApplied] = useState(false)
   const [applyError, setApplyError] = useState('')
+  const [saved, setSaved] = useState(initiallySaved)
+  const [saving, setSaving] = useState(false)
   const companyName = typeof job.company === 'string'
     ? job.company
     : job.company?.name || job.raw?.company?.name || (job.company_id ? `Company ${job.company_id}` : '')
@@ -34,6 +37,29 @@ export default function JobCard({ job, hideApply = false }){
       }
     } finally {
       setApplying(false)
+    }
+  }
+
+  async function toggleSaved(){
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: location } })
+      return
+    }
+    setSaving(true)
+    setApplyError('')
+    try {
+      if (saved) {
+        await removeSavedJob(job.id)
+        setSaved(false)
+        onUnsaved?.(job.id)
+      } else {
+        await saveJob(job.id)
+        setSaved(true)
+      }
+    } catch (error) {
+      setApplyError(error.message || 'Unable to update saved job')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -73,6 +99,9 @@ export default function JobCard({ job, hideApply = false }){
             <span key={t} className="job-tag">{t}</span>
           ))}
         </div>
+        <button className="btn-ghost" type="button" onClick={toggleSaved} disabled={saving}>
+          {saved ? 'Saved' : saving ? 'Saving…' : 'Save'}
+        </button>
         {!hideApply && (
           <button className="btn-apply" type="button" onClick={handleApply} disabled={applying || applied}>
             {applied ? 'Applied' : applying ? 'Applying…' : 'Apply'}

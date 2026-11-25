@@ -18,11 +18,14 @@ def list_users():
 @users_bp.route("/<int:user_id>", methods=["GET"])
 @jwt_required()
 def get_user(user_id: int):
+    identity = int(get_jwt_identity())
     user = User.query.get(user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
+    if identity != user_id and not (user.preferences or {}).get("profile_public", False):
+        return jsonify({"error": "Forbidden"}), 403
     # Return only public info (exclude updated_at per spec)
-    data = user.to_dict(include_updated=False)
+    data = user.to_dict(include_updated=False, include_private=False)
     return jsonify({"user": data}), 200
 
 

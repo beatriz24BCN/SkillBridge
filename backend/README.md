@@ -1,57 +1,336 @@
-# SkillBridge — Backend
+# SkillBridge backend
 
-Este directorio contiene la API backend minimal preparada para producción usando Flask.
+Flask API for SkillBridge. It uses PostgreSQL for persistence, JWT access tokens for authenticated operations, and Alembic for schema migrations.
 
-Requisitos
+## Requirements
+
 - Python 3.10+
-- PostgreSQL (para producción)
+- PostgreSQL
+- Dependencies from [requirements.txt](./requirements.txt)
 
-Instalación rápida (desarrollo)
+## Configuration
 
-1. Crear y activar un entorno virtual:
+Create an untracked local environment file:
+
+```bash
+cp .env.example .env
+```
+
+Required variables:
+
+```dotenv
+DATABASE_URL=postgresql+psycopg://skillbridge_user:YOUR_PASSWORD@localhost:5432/skillbridge
+JWT_SECRET_KEY=replace-with-a-long-random-value
+```
+
+Optional variables:
+
+```dotenv
+CORS_ORIGINS=http://localhost:5173
+FLASK_RUN_HOST=127.0.0.1
+FLASK_RUN_PORT=5000
+```
+
+`validate_config()` rejects application startup when `DATABASE_URL` or `JWT_SECRET_KEY` is missing. No SQLite fallback is configured.
+
+Install and start:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-```
-
-2. Instalar dependencias:
-
-```bash
 pip install -r requirements.txt
-```
-
-3. Copiar el archivo de ejemplo y configurar variables de entorno:
-
-```bash
-cp .env.example .env
-# editar .env y establecer DATABASE_URL y JWT_SECRET_KEY
-```
-
-4. Iniciar la aplicación (desarrollo):
-
-```bash
+export FLASK_APP=run.py
+flask db upgrade
 python run.py
 ```
 
-Variables de entorno necesarias
-- `DATABASE_URL` — URL de la base de datos (Postgres). Obligatoria.
-- `JWT_SECRET_KEY` — secreto para JWT.
-- `CORS_ORIGINS` — orígenes permitidos, separados por comas (por defecto `http://localhost:5173`).
+For the Dev Container, use the PostgreSQL service hostname `postgres` and development credentials configured locally rather than `localhost`.
 
-Endpoints
-- `GET /api/health` — health check
-- `POST /api/auth/register` — registrar usuario y obtener JWT
-- `POST /api/auth/login` — autenticar usuario
-- `GET /api/auth/me` — obtener el usuario autenticado
-- `PATCH /api/auth/me` — actualizar el perfil autenticado
-- `GET /api/jobs` — listar ofertas con su empresa
-- `POST /api/jobs` — publicar una oferta para una empresa propia
-- `GET /api/companies` — listar empresas
-- `POST /api/companies` — crear una empresa para el usuario autenticado
-- `GET /api/applications` — listar las candidaturas del usuario autenticado
-- `POST /api/applications` — solicitar una oferta
-- `GET /api/applications/job/<job_id>` — listar candidaturas de una oferta propia
+## JWT authentication and permissions
 
-Notas
-- No se incluyen credenciales ni secretos reales.
+Send authenticated requests with:
+
+```http
+Authorization: Bearer <access-token>
+```
+
+The server:
+
+- Returns an access token from registration and login.
+- Stores the JWT identity as the string form of `users.id`.
+- Returns JSON `401` errors for missing, invalid, expired, or revoked tokens.
+- Limits profile changes, company mutations, job mutations, applications, saved jobs, and settings to the relevant user or company owner.
+- Allows anonymous reads of jobs and companies.
+- Does not implement administrator or role-based access yet.
+
+Logout is client-side: the frontend removes its stored token. There is no server-side refresh-token or token-revocation store.
+
+## Models and relationships
+
+| Model | Relationship |
+| --- | --- |
+| `User` | Owns many `Company`, has many `Application`, many `SavedJob`, and many `PasswordResetToken` records. |
+| `Company` | Belongs to one owner `User`; has many `Job` records. |
+| `Job` | Belongs to one `Company`; has many `Application` and `SavedJob` records. |
+| `Application` | Belongs to one `User` and one `Job`; status is `pending`, `accepted`, or `rejected`. |
+| `SavedJob` | Join entity between `User` and `Job`; database uniqueness prevents duplicate `(user_id, job_id)` pairs. |
+| `PasswordResetToken` | Belongs to one `User`; stores only the SHA-256 token hash, expiration, and use timestamp. |
+
+Professional profile fields (`phone`, `location`, `skills`, `experience`) and `preferences` are stored on `users`. Skills, experience entries, and preferences use PostgreSQL JSONB.
+
+## Endpoint reference
+
+All paths are relative to the API origin. Paths shown with `/` should retain that trailing slash when calling the service.
+
+### System
+
+| Method | Path | Authentication | Description |
+| --- | --- | --- | --- |
+| GET | `/api/health` | No | Service health response. |
+
+### Authentication and current user
+
+| Method | Path | Authentication | Description |
+| --- | --- | --- | --- |
+| POST | `/api/auth/register` | No | Register and return a JWT plus user. |
+| POST | `/api/auth/login` | No | Authenticate and return a JWT plus user. |
+| GET | `/api/auth/me` | Yes | Return the current user. |
+| PATCH | `/api/auth/me` | Yes | Update identity, professional profile, or preferences. |
+| PATCH | `/api/auth/me/password` | Yes | Change password after checking the current password. |
+| DELETE | `/api/auth/me` | Yes | Delete the authenticated user. |
+| POST | `/api/auth/password/forgot` | No | Request password recovery. |
+| POST | `/api/auth/password/reset` | No | Consume a recovery token and set a password. |
+
+### Users
+
+| Method | Path | Authentication | Description |
+| --- | --- | --- | --- |
+| GET | `/api/users/` | Yes | Intentionally returns `403`; user listing is not implemented. |
+| GET | `/api/users/<id>` | Yes | Read self, or another user whose profile is public. |
+| PATCH | `/api/users/<id>` | Yes, self | Update basic user fields. |
+| DELETE | `/api/users/<id>` | Yes, self | Delete the selected own account. |
+
+The current frontend uses `/api/auth/me` for full profile updates and preferences.
+
+### Companies
+
+| Method | Path | Authentication | Description |
+| --- | --- | --- | --- |
+| GET | `/api/companies/` | No | List companies. |
+| GET | `/api/companies/<id>` | No | Get a company with minimal owner data. |
+| POST | `/api/companies/` | Yes | Create a company owned by the current user. |
+| PUT | `/api/companies/<id>` | Yes, owner | Update a company. |
+| PATCH | `/api/companies/<id>` | Yes, owner | Partially update a company. |
+| DELETE | `/api/companies/<id>` | Yes, owner | Delete a company. |
+
+### Jobs
+
+| Method | Path | Authentication | Description |
+| --- | --- | --- | --- |
+| GET | `/api/jobs/` | No | List jobs with summarized company data. |
+| GET | `/api/jobs/<id>` | No | Get a job with summarized company data. |
+| POST | `/api/jobs/` | Yes, company owner | Create a job for an owned company. |
+| PUT | `/api/jobs/<id>` | Yes, company owner | Replace the mutable job fields. |
+| PATCH | `/api/jobs/<id>` | Yes, company owner | Partially update a job. |
+| DELETE | `/api/jobs/<id>` | Yes, company owner | Delete a job. |
+
+### Applications
+
+| Method | Path | Authentication | Description |
+| --- | --- | --- | --- |
+| GET | `/api/applications/` | Yes | List the current user's applications. |
+| GET | `/api/applications/<id>` | Yes, applicant | Get one application. |
+| POST | `/api/applications/` | Yes | Apply once to a job. |
+| PUT | `/api/applications/<id>` | Yes | Update allowed fields according to ownership. |
+| PATCH | `/api/applications/<id>` | Yes | Applicant may edit the cover letter; company owner may change status. |
+| DELETE | `/api/applications/<id>` | Yes, applicant | Delete an application. |
+| GET | `/api/applications/job/<job_id>` | Yes, company owner | List applicants for one owned job. |
+
+New applications always begin with `pending`; clients cannot self-assign `accepted` or `rejected`.
+
+### Saved jobs
+
+| Method | Path | Authentication | Description |
+| --- | --- | --- | --- |
+| GET | `/api/saved-jobs/` | Yes | List the current user's saved jobs. |
+| POST | `/api/saved-jobs/<job_id>` | Yes | Save a job; an existing save is returned idempotently. |
+| DELETE | `/api/saved-jobs/<job_id>` | Yes | Remove a saved job owned by the current user. |
+
+### AI assistant
+
+| Method | Path | Authentication | Description |
+| --- | --- | --- | --- |
+| POST | `/api/ai/chat` | Yes | Return a locally generated assistant response. |
+
+The current AI service is a development implementation using pattern matching. It does not call an external AI provider.
+
+## Request examples
+
+Examples use placeholder values only.
+
+### Register
+
+```bash
+curl -X POST http://127.0.0.1:5000/api/auth/register \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "email": "candidate@example.test",
+    "password": "ExamplePassword123",
+    "first_name": "Alex",
+    "last_name": "Candidate"
+  }'
+```
+
+Representative response (`201`; timestamps and the remaining profile fields are omitted here):
+
+```json
+{
+  "access_token": "<access-token>",
+  "message": "User registered successfully",
+  "user": {
+    "id": 1,
+    "email": "candidate@example.test",
+    "first_name": "Alex",
+    "last_name": "Candidate",
+    "preferences": {
+      "job_alerts": true,
+      "application_updates": true,
+      "profile_public": false,
+      "remote_only": false,
+      "preferred_location": ""
+    }
+  }
+}
+```
+
+The actual token is intentionally represented by a placeholder.
+
+### Apply to a job
+
+```bash
+curl -X POST http://127.0.0.1:5000/api/applications/ \
+  -H 'Authorization: Bearer <access-token>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "job_id": 12,
+    "cover_letter": "I am interested in this opportunity."
+  }'
+```
+
+Response (`201`):
+
+```json
+{
+  "id": 34,
+  "user_id": 1,
+  "job_id": 12,
+  "status": "pending",
+  "cover_letter": "I am interested in this opportunity."
+}
+```
+
+The complete response also includes timestamps and summarized job/company data.
+
+### Save a job
+
+```bash
+curl -X POST \
+  -H 'Authorization: Bearer <access-token>' \
+  http://127.0.0.1:5000/api/saved-jobs/12
+```
+
+The endpoint returns `201` for a new save and `200` when that user already saved the same job.
+
+### Update profile and preferences
+
+```bash
+curl -X PATCH http://127.0.0.1:5000/api/auth/me \
+  -H 'Authorization: Bearer <access-token>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "phone": "+34 600 000 000",
+    "location": "Barcelona",
+    "skills": ["React", "Python", "PostgreSQL"],
+    "experience": [
+      {
+        "company": "Example Company",
+        "position": "Software Engineer",
+        "start": "2024-01",
+        "end": "",
+        "description": "Built internal web applications."
+      }
+    ],
+    "preferences": {
+      "job_alerts": false,
+      "remote_only": true,
+      "preferred_location": "Barcelona"
+    }
+  }'
+```
+
+Unknown preference properties are ignored; supported boolean values are validated as JSON booleans.
+
+### Request password recovery
+
+```bash
+curl -X POST http://127.0.0.1:5000/api/auth/password/forgot \
+  -H 'Content-Type: application/json' \
+  -d '{"email": "candidate@example.test"}'
+```
+
+Response (`202`), for both registered and unknown addresses:
+
+```json
+{
+  "message": "If the email is registered, password reset instructions will be sent."
+}
+```
+
+## Password recovery security
+
+- Raw tokens are generated using `secrets.token_urlsafe`.
+- PostgreSQL stores only a SHA-256 hash.
+- Tokens expire after 30 minutes.
+- A token's `used_at` value is set after a successful reset.
+- A used or expired token is rejected.
+- Passwords remain hashed by Werkzeug password hashing; no plaintext passwords are stored.
+- The API does not reveal whether an email is registered.
+- The API intentionally does not return reset tokens.
+
+Email delivery is **not configured**. The current backend creates reset records but does not simulate or send an email. A future mail integration must deliver a link to `/reset-password?token=<token>` and must not log raw tokens.
+
+## Alembic migrations
+
+Migration files are in [migrations/versions](./migrations/versions). The current schema includes the historical users, companies, jobs, and applications migrations plus the additive migration for saved jobs, professional profiles, preferences, and reset tokens.
+
+Apply migrations to the configured database:
+
+```bash
+export FLASK_APP=run.py
+flask db upgrade
+```
+
+Inspect:
+
+```bash
+flask db current
+flask db check
+flask db history
+```
+
+Never edit or rewrite an already published migration. Add a new revision for future schema changes. Review schema operations before running them against a database with data and keep backups according to your environment.
+
+## Development checks
+
+```bash
+python -m compileall -q app migrations
+```
+
+With backend environment variables configured:
+
+```bash
+flask db check
+python run.py
+```
+
+There is no automated backend test suite committed yet. Integration checks for destructive or schema-sensitive behavior should use a separate database.

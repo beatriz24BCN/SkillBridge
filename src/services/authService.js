@@ -79,3 +79,19 @@ export function updateCurrentUser(payload) {
     body: JSON.stringify(payload),
   })
 }
+
+export function requestPasswordReset(email) {
+  return request('/api/auth/password/forgot', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  })
+}
+
+export function resetPassword(token, password) {
+  return request('/api/auth/password/reset', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, password }),
+  })
+}

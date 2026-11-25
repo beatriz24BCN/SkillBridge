@@ -64,6 +64,9 @@ def create_app():
     from .routes.applications import applications_bp
     app.register_blueprint(applications_bp, url_prefix="/api/applications")
 
+    from .routes.saved_jobs import saved_jobs_bp
+    app.register_blueprint(saved_jobs_bp, url_prefix="/api/saved-jobs")
+
     # AI Assistant routes
     from .routes.ai import ai_bp
     app.register_blueprint(ai_bp, url_prefix="/api/ai")

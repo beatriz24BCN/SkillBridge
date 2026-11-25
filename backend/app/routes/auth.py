@@ -1,4 +1,5 @@
 import re
+from datetime import datetime, timedelta
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import (
@@ -9,6 +10,7 @@ from flask_jwt_extended import (
 
 from ..extensions import db
 from ..models.user import User
+from ..models.password_reset import PasswordResetToken
 
 
 auth_bp = Blueprint("auth", __name__)
@@ -123,6 +125,11 @@ def update_me():
     email = data.get("email")
     first_name = data.get("first_name")
     last_name = data.get("last_name")
+    phone = data.get("phone")
+    location = data.get("location")
+    skills = data.get("skills")
+    experience = data.get("experience")
+    preferences = data.get("preferences")
 
     if email:
         email = email.strip().lower()
@@ -139,6 +146,46 @@ def update_me():
 
     if last_name is not None:
         user.last_name = last_name.strip()
+    if phone is not None:
+        user.phone = phone.strip()[:50] or None
+    if location is not None:
+        user.location = location.strip()[:255] or None
+    if skills is not None:
+        if not isinstance(skills, list) or any(not isinstance(skill, str) or not skill.strip() for skill in skills):
+            return jsonify({"error": "Skills must be a list of non-empty strings"}), 400
+        user.skills = list(dict.fromkeys(skill.strip()[:80] for skill in skills))[:50]
+    if experience is not None:
+        if not isinstance(experience, list):
+            return jsonify({"error": "Experience must be a list"}), 400
+        normalized = []
+        for item in experience:
+            if not isinstance(item, dict):
+                return jsonify({"error": "Invalid experience entry"}), 400
+            entry = {
+                key: str(item.get(key) or "").strip()[:2000]
+                for key in ("company", "position", "start", "end", "description")
+            }
+            if not entry["company"] or not entry["position"]:
+                return jsonify({"error": "Company and position are required for experience"}), 400
+            normalized.append(entry)
+        user.experience = normalized[:50]
+    if preferences is not None:
+        if not isinstance(preferences, dict):
+            return jsonify({"error": "Preferences must be an object"}), 400
+        current = user.preferences or {}
+        boolean_keys = ("job_alerts", "application_updates", "profile_public", "remote_only")
+        for key in boolean_keys:
+            if key in preferences and not isinstance(preferences[key], bool):
+                return jsonify({"error": f"{key} must be a boolean"}), 400
+        if "preferred_location" in preferences and not isinstance(preferences["preferred_location"], str):
+            return jsonify({"error": "preferred_location must be a string"}), 400
+        user.preferences = {
+            "job_alerts": preferences.get("job_alerts", bool(current.get("job_alerts", True))),
+            "application_updates": preferences.get("application_updates", bool(current.get("application_updates", True))),
+            "profile_public": preferences.get("profile_public", bool(current.get("profile_public", False))),
+            "remote_only": preferences.get("remote_only", bool(current.get("remote_only", False))),
+            "preferred_location": str(preferences.get("preferred_location", current.get("preferred_location", ""))).strip()[:255],
+        }
 
     try:
         db.session.add(user)
@@ -180,6 +227,56 @@ def change_password():
     try:
         user.set_password(new_password)
         db.session.add(user)
+        db.session.commit()
+        return jsonify({"message": "Password updated successfully"}), 200
+    except Exception:
+        db.session.rollback()
+        return jsonify({"error": "Internal server error"}), 500
+
+
+@auth_bp.route("/password/forgot", methods=["POST"])
+def forgot_password():
+    data = request.get_json() or {}
+    email = (data.get("email") or "").strip().lower()
+    if email and _validate_email(email):
+        user = User.query.filter_by(email=email).first()
+        if user:
+            now = datetime.utcnow()
+            PasswordResetToken.query.filter_by(user_id=user.id, used_at=None).delete()
+            token, reset = PasswordResetToken.create_for_user(user.id, now + timedelta(minutes=30))
+            db.session.add(reset)
+            db.session.commit()
+            # Email delivery is intentionally not simulated. The provider integration
+            # should deliver this raw token using the configured reset URL.
+            del token
+    return jsonify({
+        "message": "If the email is registered, password reset instructions will be sent.",
+    }), 202
+
+
+@auth_bp.route("/password/reset", methods=["POST"])
+def reset_password():
+    data = request.get_json() or {}
+    token = data.get("token")
+    password = data.get("password")
+    if not token or not password:
+        return jsonify({"error": "Token and password are required"}), 400
+    if not _validate_password(password):
+        return jsonify({
+            "error": "Password must be at least 8 characters and include letters and numbers",
+        }), 400
+
+    reset = PasswordResetToken.query.filter_by(token_hash=PasswordResetToken.hash_token(token)).first()
+    now = datetime.utcnow()
+    if not reset or not reset.is_valid(now):
+        return jsonify({"error": "Invalid or expired reset token"}), 400
+
+    try:
+        user = User.query.get(reset.user_id)
+        if not user:
+            return jsonify({"error": "Invalid or expired reset token"}), 400
+        user.set_password(password)
+        reset.used_at = now
         db.session.commit()
         return jsonify({"message": "Password updated successfully"}), 200
     except Exception:

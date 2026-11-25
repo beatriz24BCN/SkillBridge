@@ -55,7 +55,7 @@ export default function Login(){
 
           <div className="auth-row-between">
             <button type="submit" className="btn-primary auth-cta" disabled={submitting}>{submitting ? 'Logging in…' : 'Log in'}</button>
-            <a className="auth-forgot" href="#">Forgot password?</a>
+            <Link className="auth-forgot" to="/forgot-password">Forgot password?</Link>
           </div>
         </form>
         {errors.form && <div className="auth-error" role="alert">{errors.form}</div>}

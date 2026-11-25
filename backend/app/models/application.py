@@ -54,7 +54,7 @@ class Application(db.Model):
             try:
                 u = None
                 if hasattr(self, "applicant") and self.applicant is not None:
-                    u = self.applicant.to_dict()
+                    u = self.applicant.to_dict(include_private=False)
                 data["user"] = u
             except Exception:
                 data["user"] = None
