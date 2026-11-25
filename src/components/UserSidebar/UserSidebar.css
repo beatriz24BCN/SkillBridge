@@ -13,4 +13,6 @@
 .user-nav a:nth-child(5)::before{content:'💬'}
 .user-nav a:nth-child(6)::before{content:'⚙️'}
 .user-nav a:hover{background:rgba(37,99,235,0.04);color:var(--primary)}
+.user-logout{margin-top:8px;border:0;background:transparent;color:var(--text-muted);padding:10px 12px;border-radius:10px;font:inherit;font-weight:700;text-align:left;cursor:pointer}
+.user-logout:hover{background:rgba(37,99,235,0.04);color:var(--primary)}
 @media (max-width:900px){.user-sidebar{display:none}}

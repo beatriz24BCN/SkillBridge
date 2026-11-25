@@ -59,7 +59,6 @@ def create_application():
     data = request.get_json() or {}
     job_id = data.get("job_id")
     cover_letter = data.get("cover_letter")
-    status = data.get("status")
 
     if not job_id:
         return jsonify({"error": "job_id is required"}), 400
@@ -74,10 +73,7 @@ def create_application():
         return jsonify({"error": "Application already exists"}), 409
 
     try:
-        payload = {"user_id": uid, "job_id": job_id, "cover_letter": cover_letter}
-        if status:
-            payload["status"] = status
-        app_obj = Application(**payload)
+        app_obj = Application(user_id=uid, job_id=job_id, cover_letter=cover_letter, status="pending")
         db.session.add(app_obj)
         db.session.flush()
         db.session.commit()
@@ -103,21 +99,23 @@ def update_application(app_id):
     if not app_obj:
         return jsonify({"error": "Application not found"}), 404
 
-    if app_obj.user_id != uid:
+    data = request.get_json() or {}
+    owns_job_company = app_obj.job_ref.company.owner_id == uid
+
+    if not app_obj.user_id == uid and not owns_job_company:
         return jsonify({"error": "Forbidden"}), 403
 
-    data = request.get_json() or {}
-    # Allow updating cover_letter and status
     if "cover_letter" in data:
+        if app_obj.user_id != uid:
+            return jsonify({"error": "Forbidden"}), 403
         app_obj.cover_letter = data.get("cover_letter")
 
     if "status" in data:
-        try:
-            if data.get("status") not in Application.ALLOWED_STATUSES:
-                return jsonify({"error": "Invalid status"}), 400
-            app_obj.status = data.get("status")
-        except Exception:
+        if not owns_job_company:
+            return jsonify({"error": "Forbidden"}), 403
+        if data.get("status") not in Application.ALLOWED_STATUSES:
             return jsonify({"error": "Invalid status"}), 400
+        app_obj.status = data.get("status")
 
     try:
         db.session.add(app_obj)
@@ -126,6 +124,25 @@ def update_application(app_id):
     except Exception:
         db.session.rollback()
         return jsonify({"error": "Internal server error"}), 500
+
+
+@applications_bp.route("/job/<int:job_id>", methods=["GET"])
+@jwt_required()
+def list_job_applications(job_id):
+    identity = get_jwt_identity()
+    try:
+        uid = int(identity)
+    except (TypeError, ValueError):
+        return jsonify({"error": "Invalid token identity"}), 401
+
+    job = Job.query.get(job_id)
+    if not job:
+        return jsonify({"error": "Job not found"}), 404
+    if job.company.owner_id != uid:
+        return jsonify({"error": "Forbidden"}), 403
+
+    apps = Application.query.filter_by(job_id=job_id).all()
+    return jsonify([app.to_dict(include_job=False, include_user=True) for app in apps]), 200
 
 
 @applications_bp.route("/<int:app_id>", methods=["DELETE"])

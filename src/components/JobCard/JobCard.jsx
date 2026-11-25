@@ -1,16 +1,51 @@
-import React from 'react'
+import React, { useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import './JobCard.css'
+import { useAuth } from '../../context/AuthContext'
+import { createApplication } from '../../services/applicationsService'
 
-export default function JobCard({ job }){
+export default function JobCard({ job, hideApply = false }){
+  const { isAuthenticated } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [applying, setApplying] = useState(false)
+  const [applied, setApplied] = useState(false)
+  const [applyError, setApplyError] = useState('')
+  const companyName = typeof job.company === 'string'
+    ? job.company
+    : job.company?.name || job.raw?.company?.name || (job.company_id ? `Company ${job.company_id}` : '')
+  const tags = job.tags || (job.requirements ? [job.requirements] : [])
+
+  async function handleApply(){
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: location } })
+      return
+    }
+    setApplying(true)
+    setApplyError('')
+    try {
+      await createApplication({ job_id: job.id })
+      setApplied(true)
+    } catch (error) {
+      if (error.status === 409) {
+        setApplied(true)
+      } else {
+        setApplyError(error.message || 'Unable to apply')
+      }
+    } finally {
+      setApplying(false)
+    }
+  }
+
   return (
     <article className={`job-card ${job.featured? 'featured':''}`}>
       {job.featured && <div className="featured-badge">Featured</div>}
       <div className="job-card-row">
-          <div className="card-avatar">{(job.raw && job.raw.company && job.raw.company.name && job.raw.company.name.charAt(0)) || job.logo || (job.company && job.company.charAt(0))}</div>
+          <div className="card-avatar">{companyName.charAt(0) || job.logo}</div>
 
           <div className="card-content">
           <h3 className="job-title">{job.title}</h3>
-          <div className="job-company">{(job.raw && job.raw.company && job.raw.company.name) || job.company} • <span className="job-location">{job.location}</span></div>
+          <div className="job-company">{companyName} • <span className="job-location">{job.location}</span></div>
         </div>
 
           <div className="card-right">
@@ -24,7 +59,7 @@ export default function JobCard({ job }){
 
       <div className="job-meta">
         <div className="meta-top">
-          <span className="job-type">{job.type}</span>
+          <span className="job-type">{job.type || job.modality}</span>
           <div className="label-group">
             {(job.labels||[]).map(l=> <span key={l} className={`label label-${l.toLowerCase()}`}>{l}</span>)}
           </div>
@@ -34,12 +69,17 @@ export default function JobCard({ job }){
 
       <div className="job-footer">
         <div className="job-tags">
-          {job.tags.map((t)=> (
+          {tags.map((t)=> (
             <span key={t} className="job-tag">{t}</span>
           ))}
         </div>
-        <button className="btn-apply">Apply</button>
+        {!hideApply && (
+          <button className="btn-apply" type="button" onClick={handleApply} disabled={applying || applied}>
+            {applied ? 'Applied' : applying ? 'Applying…' : 'Apply'}
+          </button>
+        )}
       </div>
+      {applyError && <div className="error" role="alert">{applyError}</div>}
     </article>
   )
 }

@@ -3,12 +3,14 @@ import JobCard from '../components/JobCard/JobCard'
 import './Jobs.css'
 import * as jobsService from '../services/jobsService'
 import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 export default function Jobs(){
   const [jobs, setJobs] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   const loadJobs = useCallback(async () => {
     setLoading(true)
@@ -132,10 +134,14 @@ export default function Jobs(){
                     <JobCard job={j} />
                     <div style={{marginTop:6}}>
                       <Link to={`/jobs/${j.id}`} className="auth-link">View</Link>
-                      <span style={{marginLeft:12}}>
-                        <Link to={`/jobs/${j.id}/edit`} className="auth-link">Edit</Link>
-                      </span>
-                      <button style={{marginLeft:12}} className="btn-ghost" onClick={()=>handleDelete(j.id)}>Delete</button>
+                      {user && j.raw?.company?.owner_id === user.id && (
+                        <>
+                          <span style={{marginLeft:12}}>
+                            <Link to={`/jobs/${j.id}/edit`} className="auth-link">Edit</Link>
+                          </span>
+                          <button style={{marginLeft:12}} className="btn-ghost" onClick={()=>handleDelete(j.id)}>Delete</button>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}

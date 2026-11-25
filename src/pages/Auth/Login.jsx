@@ -1,12 +1,16 @@
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 import './Auth.css'
 
 export default function Login(){
   const navigate = useNavigate()
+  const location = useLocation()
+  const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState({})
+  const [submitting, setSubmitting] = useState(false)
 
   function validate() {
     const e = {}
@@ -17,32 +21,19 @@ export default function Login(){
     return Object.keys(e).length === 0
   }
 
-    function handleSubmit(ev) {
+  async function handleSubmit(ev) {
     ev.preventDefault()
     if (!validate()) return
-      // Minimal: call backend login and store access_token in localStorage if provided
-      (async () => {
-        try {
-          const res = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-          })
-          if (!res.ok) {
-            // Keep the placeholder behavior for now if login fails
-            navigate('/dashboard')
-            return
-          }
-          const data = await res.json()
-          if (data && data.access_token) {
-            try { localStorage.setItem('access_token', data.access_token) } catch (e) {}
-          }
-          navigate('/dashboard')
-        } catch (e) {
-          // On network error, still navigate (placeholder)
-          navigate('/dashboard')
-        }
-      })()
+    setSubmitting(true)
+    setErrors({})
+    try {
+      await login({ email, password })
+      navigate(location.state?.from?.pathname || '/dashboard', { replace: true })
+    } catch (error) {
+      setErrors({ form: error.message || 'Unable to log in' })
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -63,10 +54,11 @@ export default function Login(){
           </label>
 
           <div className="auth-row-between">
-            <button type="submit" className="btn-primary auth-cta">Log in</button>
+            <button type="submit" className="btn-primary auth-cta" disabled={submitting}>{submitting ? 'Logging in…' : 'Log in'}</button>
             <a className="auth-forgot" href="#">Forgot password?</a>
           </div>
         </form>
+        {errors.form && <div className="auth-error" role="alert">{errors.form}</div>}
 
         <div className="auth-footer">
           <span>Don't have an account? </span>

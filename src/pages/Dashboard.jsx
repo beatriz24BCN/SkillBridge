@@ -1,21 +1,33 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import UserSidebar from '../components/UserSidebar/UserSidebar'
-import { getUser, getJobs } from '../mocks/mockUser'
 import JobCard from '../components/JobCard/JobCard'
+import { useAuth } from '../context/AuthContext'
+import { getJobs } from '../services/jobsService'
+import { getApplications } from '../services/applicationsService'
 import './user.css'
 
 export default function Dashboard(){
-  const user = getUser()
-  const jobs = getJobs()
-  const progress = 68 // mock
+  const { user } = useAuth()
+  const [jobs, setJobs] = useState([])
+  const [applications, setApplications] = useState([])
+  const [error, setError] = useState('')
+  const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim()
+  const progress = [user.first_name, user.last_name, user.email].filter(Boolean).length === 3 ? 100 : 60
 
-  const recentActivity = [
-    { text: 'Applied to Senior Frontend Engineer', when: '2 hours ago' },
-    { text: 'Saved Full Stack Developer at ScaleUp', when: 'Yesterday' },
-    { text: 'Profile updated', when: '2 days ago' },
-    { text: 'Interview scheduled with Design Studio', when: '3 days ago' }
-  ]
+  useEffect(() => {
+    let active = true
+    Promise.all([getJobs(), getApplications()])
+      .then(([jobData, applicationData]) => {
+        if (!active) return
+        setJobs(jobData || [])
+        setApplications(applicationData || [])
+      })
+      .catch(loadError => {
+        if (active) setError(loadError.message || 'Unable to load dashboard data')
+      })
+    return () => { active = false }
+  }, [])
 
   return (
     <div className="user-page">
@@ -26,8 +38,8 @@ export default function Dashboard(){
           <div className="dashboard-left">
             <header className="dashboard-header">
               <div>
-                <h2>Hi, {user.name} 👋</h2>
-                <div className="muted">{user.title} · {user.city} · Open to work</div>
+                <h2>Hi, {fullName || 'there'} 👋</h2>
+                <div className="muted">{user.email} · Open to work</div>
               </div>
 
               <div className="profile-complete-card">
@@ -48,30 +60,38 @@ export default function Dashboard(){
             <section className="stats-grid">
               <div className="stat-card">
                 <div className="stat-icon">📄</div>
-                <div className="stat-num">{user.applicationsCount}</div>
+                <div className="stat-num">{applications.length}</div>
                 <div className="stat-text">Applications</div>
               </div>
               <div className="stat-card">
                 <div className="stat-icon">🔖</div>
-                <div className="stat-num">{user.savedJobsCount}</div>
+                <div className="stat-num">0</div>
                 <div className="stat-text">Saved Jobs</div>
               </div>
               <div className="stat-card">
                 <div className="stat-icon">🎤</div>
-                <div className="stat-num">{user.interviewsCount}</div>
+                <div className="stat-num">{applications.filter(app => app.status === 'accepted').length}</div>
                 <div className="stat-text">Interviews</div>
               </div>
               <div className="stat-card">
                 <div className="stat-icon">👀</div>
-                <div className="stat-num">24</div>
-                <div className="stat-text">Profile views</div>
+                <div className="stat-num">{jobs.length}</div>
+                <div className="stat-text">Available jobs</div>
               </div>
             </section>
 
             <section className="section">
               <h3>Recommended Jobs</h3>
               <div className="jobs-grid">
-                {jobs.map(j=> <JobCard key={j.id} job={j} />)}
+                {error && <div className="error">{error}</div>}
+                {jobs.slice(0, 3).map(j=> <JobCard key={j.id} job={{
+                  ...j,
+                  company: j.company?.name || `Company ${j.company_id}`,
+                  type: j.modality,
+                  tags: j.requirements ? [j.requirements] : [],
+                  labels: [],
+                  raw: j,
+                }} />)}
               </div>
             </section>
 
@@ -79,9 +99,7 @@ export default function Dashboard(){
               <h4>Why these jobs match you</h4>
               <p className="muted">Your profile matches these roles based on your skills, experience and preferences.</p>
               <div className="match-list">
-                {['React','JavaScript','Full Stack','Remote preference','Barcelona'].map(m=> (
-                  <div key={m} className="match-item">✓ {m}</div>
-                ))}
+                <div className="match-item">Complete your profile to improve matching.</div>
               </div>
               <div style={{marginTop:12}}>
                 <Link to="/profile/edit" className="auth-link">Improve my profile</Link>
@@ -95,7 +113,7 @@ export default function Dashboard(){
               <div className="muted">{progress}% complete</div>
               <ul className="profile-checks">
                 <li>✓ Basic information</li>
-                <li>✓ Professional title</li>
+                <li>○ Professional title</li>
                 <li>○ Skills</li>
                 <li>○ Experience</li>
                 <li>○ Education</li>
@@ -108,30 +126,31 @@ export default function Dashboard(){
             <div className="card small">
               <h4>Recent activity</h4>
               <div className="activity-list">
-                {recentActivity.map((a,i)=> (
+                {applications.slice(0, 3).map((application, i)=> (
                   <div key={i} className="activity-item">
-                    <div>{a.text}</div>
-                    <div className="muted small">{a.when}</div>
+                    <div>Applied to {application.job?.title || `job #${application.job_id}`}</div>
+                    <div className="muted small">{application.status}</div>
                   </div>
                 ))}
+                {applications.length === 0 && <div className="muted small">No recent activity.</div>}
               </div>
             </div>
 
             <div className="card small">
               <h4>Recent applications</h4>
               <div className="app-list">
-                {jobs.slice(0,3).map(j=> (
-                  <div key={j.id} className="app-row">
+                {applications.slice(0,3).map(application => (
+                  <div key={application.id} className="app-row">
                     <div className="app-left">
-                      <div className="app-company">{j.company}</div>
-                      <div className="muted small">{j.title}</div>
+                      <div className="app-company">{application.job?.company?.name || 'Company'}</div>
+                      <div className="muted small">{application.job?.title}</div>
                     </div>
                     <div className="app-right">
-                      <div className="status applied">Applied</div>
-                      <div className="muted small">2d</div>
+                      <div className="status applied">{application.status}</div>
                     </div>
                   </div>
                 ))}
+                {applications.length === 0 && <div className="muted small">No applications yet.</div>}
               </div>
               <Link to="/applications" className="auth-link">View all applications →</Link>
             </div>
@@ -139,12 +158,7 @@ export default function Dashboard(){
             <div className="card small">
               <h4>Saved jobs</h4>
               <div className="saved-list">
-                {jobs.slice(0,2).map(j=> (
-                  <div key={j.id} className="saved-row">
-                    <div>{j.title}</div>
-                    <div className="muted small">{j.company}</div>
-                  </div>
-                ))}
+                <div className="muted small">Saved jobs are not available yet.</div>
               </div>
               <Link to="/saved-jobs" className="auth-link">View all saved jobs →</Link>
             </div>

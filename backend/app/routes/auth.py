@@ -1,4 +1,3 @@
-from datetime import datetime
 import re
 
 from flask import Blueprint, jsonify, request
@@ -60,10 +59,12 @@ def register():
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
-        return (
-            jsonify({"message": "User registered successfully", "user": user.to_dict()}),
-            201,
-        )
+        access_token = create_access_token(identity=str(user.id))
+        return jsonify({
+            "message": "User registered successfully",
+            "access_token": access_token,
+            "user": user.to_dict(),
+        }), 201
     except Exception:
         db.session.rollback()
         return jsonify({"error": "Internal server error"}), 500
@@ -87,12 +88,7 @@ def login():
     return jsonify(
         {
             "access_token": access_token,
-            "user": {
-                "id": user.id,
-                "email": user.email,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-            },
+            "user": user.to_dict(),
         }
     ), 200
 

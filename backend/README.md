@@ -41,9 +41,17 @@ Variables de entorno necesarias
 
 Endpoints
 - `GET /api/health` — health check
-- `POST /api/auth/register` — (pendiente)
-- `POST /api/auth/login` — (pendiente)
-- `GET /api/auth/me` — (pendiente)
+- `POST /api/auth/register` — registrar usuario y obtener JWT
+- `POST /api/auth/login` — autenticar usuario
+- `GET /api/auth/me` — obtener el usuario autenticado
+- `PATCH /api/auth/me` — actualizar el perfil autenticado
+- `GET /api/jobs` — listar ofertas con su empresa
+- `POST /api/jobs` — publicar una oferta para una empresa propia
+- `GET /api/companies` — listar empresas
+- `POST /api/companies` — crear una empresa para el usuario autenticado
+- `GET /api/applications` — listar las candidaturas del usuario autenticado
+- `POST /api/applications` — solicitar una oferta
+- `GET /api/applications/job/<job_id>` — listar candidaturas de una oferta propia
 
 Notas
 - No se incluyen credenciales ni secretos reales.

@@ -2,11 +2,14 @@ import React, { useEffect, useState } from 'react'
 import CompanyCard from '../components/CompanyCard/CompanyCard'
 import './Companies.css'
 import * as companiesService from '../services/companiesService'
+import { Link } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 export default function Companies(){
   const [companies, setCompanies] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const { isAuthenticated } = useAuth()
 
   useEffect(() => {
     let mounted = true
@@ -37,6 +40,7 @@ export default function Companies(){
           <div className="companies-badge">🏢 Trusted by Leading Companies</div>
           <h1 className="companies-title">Discover Amazing Companies</h1>
           <p className="companies-sub">Explore innovative companies hiring top talent through AI-powered recruitment.</p>
+          {isAuthenticated && <Link to="/companies/new" className="btn-primary" style={{ padding: '10px 16px' }}>Create company</Link>}
         </header>
 
         <section className="companies-search">

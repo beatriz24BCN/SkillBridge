@@ -1,31 +1,47 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import './Auth.css'
+import { useAuth } from '../../context/AuthContext'
 
 export default function Signup(){
   const navigate = useNavigate()
+  const { register } = useAuth()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [errors, setErrors] = useState({})
+  const [submitting, setSubmitting] = useState(false)
 
   function validate(){
     const e = {}
     if (!name) e.name = 'Full name is required'
+    else if (name.trim().split(/\s+/).length < 2) e.name = 'Enter your first and last name'
     if (!email) e.email = 'Email is required'
     else if (!/^\S+@\S+\.\S+$/.test(email)) e.email = 'Enter a valid email'
     if (!password) e.password = 'Password is required'
+    else if (password.length < 8 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) e.password = 'Use at least 8 characters with letters and numbers'
     if (password !== confirm) e.confirm = 'Passwords do not match'
     setErrors(e)
     return Object.keys(e).length === 0
   }
 
-  function handleSubmit(ev){
+  async function handleSubmit(ev){
     ev.preventDefault()
     if (!validate()) return
-    console.log('Signup submit', { name, email })
-    navigate('/dashboard')
+    setSubmitting(true)
+    setErrors({})
+    const parts = name.trim().split(/\s+/)
+    const first_name = parts.shift()
+    const last_name = parts.join(' ')
+    try {
+      await register({ email, password, first_name, last_name })
+      navigate('/dashboard', { replace: true })
+    } catch (error) {
+      setErrors({ form: error.message || 'Unable to create account' })
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -56,9 +72,10 @@ export default function Signup(){
           </label>
 
           <div className="auth-row-center">
-            <button type="submit" className="btn-primary auth-cta">Create account</button>
+            <button type="submit" className="btn-primary auth-cta" disabled={submitting}>{submitting ? 'Creating account…' : 'Create account'}</button>
           </div>
         </form>
+        {errors.form && <div className="auth-error" role="alert">{errors.form}</div>}
 
         <div className="auth-footer">
           <span>Already have an account? </span>

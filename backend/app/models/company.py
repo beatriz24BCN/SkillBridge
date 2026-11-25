@@ -50,7 +50,6 @@ class Company(db.Model):
                 if hasattr(self, "owner") and self.owner is not None:
                     owner = {
                         "id": self.owner.id,
-                        "email": self.owner.email,
                         "first_name": self.owner.first_name,
                         "last_name": self.owner.last_name,
                     }

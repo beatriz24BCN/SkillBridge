@@ -38,7 +38,7 @@ export default function Applications(){
             const job = a.job || { id: `nojob-${a.id}`, title: 'Unknown job', company: null }
             return (
               <div key={a.id} className="app-item">
-                <JobCard job={job} />
+                <JobCard job={job} hideApply />
                 <div className="app-meta">
                   <div>Status: <strong>{a.status}</strong></div>
                   {a.cover_letter && <div className="cover">{a.cover_letter.slice(0,200)}</div>}

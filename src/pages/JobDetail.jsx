@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import * as jobsService from '../services/jobsService'
+import { useAuth } from '../context/AuthContext'
+import { createApplication } from '../services/applicationsService'
 
 export default function JobDetail(){
   const { id } = useParams()
@@ -8,6 +10,28 @@ export default function JobDetail(){
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const navigate = useNavigate()
+  const { isAuthenticated, user } = useAuth()
+  const [applying, setApplying] = useState(false)
+  const [applied, setApplied] = useState(false)
+  const [applyError, setApplyError] = useState('')
+
+  async function apply() {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: { pathname: `/jobs/${id}` } } })
+      return
+    }
+    setApplying(true)
+    setApplyError('')
+    try {
+      await createApplication({ job_id: Number(id) })
+      setApplied(true)
+    } catch (error) {
+      if (error.status === 409) setApplied(true)
+      else setApplyError(error.message || 'Unable to apply')
+    } finally {
+      setApplying(false)
+    }
+  }
 
   useEffect(() => {
     let mounted = true
@@ -63,7 +87,13 @@ export default function JobDetail(){
         <p>{job.requirements || '—'}</p>
       </div>
       <div style={{marginTop:12}}>
-        <Link to={`/jobs/${job.id}/edit`} className="auth-link">Edit job</Link>
+        <button type="button" className="btn-primary" disabled={applying || applied} onClick={apply}>
+          {applied ? 'Applied' : applying ? 'Applying…' : 'Apply now'}
+        </button>
+      </div>
+      {applyError && <div className="error">{applyError}</div>}
+      <div style={{marginTop:12}}>
+        {isAuthenticated && user?.id === job.company?.owner_id && <Link to={`/jobs/${job.id}/edit`} className="auth-link">Edit job</Link>}
       </div>
     </div>
   )

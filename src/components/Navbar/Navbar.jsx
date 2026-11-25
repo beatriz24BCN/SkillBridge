@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import './Navbar.css'
 import AIAssistant from '../AIAssistant/AIAssistant'
+import { useAuth } from '../../context/AuthContext'
 
 export default function Navbar(){
   const [open,setOpen] = useState(false)
   const [aiOpen, setAiOpen] = useState(false)
+  const { isAuthenticated, user, logout } = useAuth()
   const navRef = useRef(null)
   const buttonId = 'sb-hamburger'
   const navId = 'sb-main-nav'
@@ -41,14 +43,32 @@ export default function Navbar(){
           <NavLink onClick={()=>setOpen(false)} to="/credentials" className={({isActive})=> `sb-nav-link${isActive? ' active':''}`}>Credentials</NavLink>
 
           {/* Mobile-only auth links inside the menu */}
-          <Link onClick={()=>setOpen(false)} to="/login" className="sb-nav-link sb-mobile-auth">Login</Link>
-          <Link onClick={()=>setOpen(false)} to="/signup" className="sb-nav-link sb-mobile-cta">Sign Up</Link>
+          {isAuthenticated ? (
+            <>
+              <Link onClick={()=>setOpen(false)} to="/dashboard" className="sb-nav-link sb-mobile-auth">Dashboard</Link>
+              <button type="button" onClick={()=>{ setOpen(false); logout() }} className="sb-nav-link sb-mobile-cta">Logout</button>
+            </>
+          ) : (
+            <>
+              <Link onClick={()=>setOpen(false)} to="/login" className="sb-nav-link sb-mobile-auth">Login</Link>
+              <Link onClick={()=>setOpen(false)} to="/signup" className="sb-nav-link sb-mobile-cta">Sign Up</Link>
+            </>
+          )}
         </nav>
 
         <div className="navbar-right sb-right">
           <button type="button" className="sb-ai-btn" onClick={()=> { console.log('AI button clicked', aiOpen); setAiOpen(true) }}>AI Assistant</button>
-          <Link to="/login" className="sb-login">Login</Link>
-          <Link to="/signup" className="sb-cta">Sign Up</Link>
+          {isAuthenticated ? (
+            <>
+              <Link to="/dashboard" className="sb-login">{user?.first_name || 'Dashboard'}</Link>
+              <button type="button" className="sb-cta" onClick={logout}>Logout</button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="sb-login">Login</Link>
+              <Link to="/signup" className="sb-cta">Sign Up</Link>
+            </>
+          )}
           <button id={buttonId} className="sb-hamburger" aria-label="Toggle menu" aria-controls={navId} onClick={()=>setOpen(!open)} aria-expanded={open}>
             <span className="bar" />
             <span className="bar" />

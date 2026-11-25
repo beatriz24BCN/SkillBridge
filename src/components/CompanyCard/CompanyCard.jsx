@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import './CompanyCard.css'
 
 export default function CompanyCard({ company }){
@@ -36,8 +37,8 @@ export default function CompanyCard({ company }){
           <div className="size-label">{company.size}</div>
         </div>
         <div className="footer-actions">
-          <button className="btn-ghost">View Company</button>
-          <button className="btn-primary small">Open Jobs</button>
+          <Link to={`/companies/${company.id}`} className="btn-ghost">View Company</Link>
+          <Link to={`/companies/${company.id}`} className="btn-primary small">Open Jobs</Link>
         </div>
       </div>
     </article>

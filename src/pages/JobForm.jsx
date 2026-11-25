@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import * as jobsService from '../services/jobsService'
+import * as companiesService from '../services/companiesService'
+import { useAuth } from '../context/AuthContext'
 
 export default function JobForm(){
   const { id } = useParams()
   const isEdit = !!id
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const [companies, setCompanies] = useState([])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
@@ -33,6 +37,18 @@ export default function JobForm(){
     return ()=> { mounted = false }
   }, [id, isEdit])
 
+  useEffect(() => {
+    let mounted = true
+    companiesService.getCompanies()
+      .then(data => {
+        if (mounted) setCompanies((data || []).filter(company => company.owner_id === user.id))
+      })
+      .catch(err => {
+        if (mounted) setError(err.message || 'Error loading companies')
+      })
+    return () => { mounted = false }
+  }, [user.id])
+
   function onChange(e){
     const { name, value } = e.target
     setForm(f => ({ ...f, [name]: value }))
@@ -54,9 +70,9 @@ export default function JobForm(){
     setError(null)
     try{
       if(isEdit){
-        await jobsService.updateJob(id, form)
+        await jobsService.updateJob(id, { ...form, company_id: Number(form.company_id) })
       } else {
-        await jobsService.createJob(form)
+        await jobsService.createJob({ ...form, company_id: Number(form.company_id) })
       }
       navigate('/jobs')
     }catch(err){
@@ -94,9 +110,15 @@ export default function JobForm(){
         <label>Contract type
           <input name="contract_type" value={form.contract_type} onChange={onChange} />
         </label>
-        <label>Company ID
-          <input name="company_id" value={form.company_id} onChange={onChange} />
+        <label>Company
+          <select name="company_id" value={form.company_id} onChange={onChange}>
+            <option value="">Select a company</option>
+            {companies.map(company => <option key={company.id} value={company.id}>{company.name}</option>)}
+          </select>
         </label>
+        {companies.length === 0 && (
+          <div className="muted">Create a company profile before publishing a job. <button type="button" className="auth-link" onClick={() => navigate('/companies/new')}>Create company</button></div>
+        )}
 
         <div style={{marginTop:12}}>
           <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Saving…' : 'Save'}</button>

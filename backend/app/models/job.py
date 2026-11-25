@@ -73,6 +73,7 @@ class Job(db.Model):
                         "name": self.company.name,
                         "location": self.company.location,
                         "website": self.company.website,
+                        "owner_id": self.company.owner_id,
                     }
                 data["company"] = comp
             except Exception:

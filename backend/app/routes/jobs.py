@@ -10,7 +10,7 @@ jobs_bp = Blueprint("jobs", __name__)
 @jobs_bp.route("/", methods=["GET"])
 def list_jobs():
     jobs = Job.query.all()
-    return jsonify([j.to_dict(include_company=False) for j in jobs]), 200
+    return jsonify([j.to_dict(include_company=True) for j in jobs]), 200
 
 
 @jobs_bp.route("/<int:job_id>", methods=["GET"])
