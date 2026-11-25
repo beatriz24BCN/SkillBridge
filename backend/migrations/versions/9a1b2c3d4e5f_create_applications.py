@@ -1,7 +1,7 @@
 """create applications table
 
 Revision ID: 9a1b2c3d4e5f
-Revises: 8f3b2a7c9d1e
+Revises: b7c4d2e1f6a3
 Create Date: 2026-09-23 00:00:00.000000
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '9a1b2c3d4e5f'
-down_revision = '8f3b2a7c9d1e'
+down_revision = 'b7c4d2e1f6a3'
 branch_labels = None
 depends_on = None
 
