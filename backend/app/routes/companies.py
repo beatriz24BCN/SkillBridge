@@ -15,7 +15,7 @@ def list_companies():
 
 @companies_bp.route("/<int:company_id>", methods=["GET"])
 def get_company(company_id):
-    c = Company.query.get(company_id)
+    c = db.session.get(Company, company_id)
     if not c:
         return jsonify({"error": "Company not found"}), 404
     return jsonify(c.to_dict(include_owner=True)), 200
@@ -28,7 +28,7 @@ def create_company():
     if not identity:
         return jsonify({"error": "Authentication required"}), 401
 
-    user = User.query.get(identity)
+    user = db.session.get(User, identity)
     if not user:
         return jsonify({"error": "User not found"}), 401
 
@@ -59,11 +59,11 @@ def create_company():
 @jwt_required()
 def update_company(company_id):
     identity = get_jwt_identity()
-    user = User.query.get(identity)
+    user = db.session.get(User, identity)
     if not user:
         return jsonify({"error": "User not found"}), 401
 
-    comp = Company.query.get(company_id)
+    comp = db.session.get(Company, company_id)
     if not comp:
         return jsonify({"error": "Company not found"}), 404
 
@@ -92,11 +92,11 @@ def update_company(company_id):
 @jwt_required()
 def delete_company(company_id):
     identity = get_jwt_identity()
-    user = User.query.get(identity)
+    user = db.session.get(User, identity)
     if not user:
         return jsonify({"error": "User not found"}), 401
 
-    comp = Company.query.get(company_id)
+    comp = db.session.get(Company, company_id)
     if not comp:
         return jsonify({"error": "Company not found"}), 404
 

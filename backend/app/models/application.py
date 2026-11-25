@@ -5,6 +5,9 @@ from ..extensions import db
 
 class Application(db.Model):
     __tablename__ = "applications"
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "job_id", name="uq_applications_user_job"),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)

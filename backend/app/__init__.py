@@ -1,8 +1,8 @@
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 
 from .config import Config, validate_config
-from .extensions import db, migrate, jwt, cors
+from .extensions import db, migrate, jwt, cors, limiter
 
 
 def create_app():
@@ -17,6 +17,7 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
+    limiter.init_app(app)
 
     # Normalize JWT errors to JSON 401 responses so malformed/invalid
     # tokens return 401 instead of 422 (pyjwt message leakage).
@@ -36,12 +37,36 @@ def create_app():
     def _revoked_token_callback(jwt_header, jwt_payload):
         return jsonify({"error": "Token has been revoked"}), 401
 
+    @jwt.token_in_blocklist_loader
+    def _token_version_callback(jwt_header, jwt_payload):
+        from .models.user import User
+        try:
+            user_id = int(jwt_payload.get("sub"))
+            token_version = int(jwt_payload.get("token_version"))
+        except (TypeError, ValueError):
+            return True
+        user = db.session.get(User, user_id)
+        return user is None or user.token_version != token_version
+
+    @app.errorhandler(429)
+    def _rate_limit_callback(error):
+        return jsonify({"error": "Too many requests; try again later"}), 429
+
     # Configure CORS
     origins = []
     cors_origins = app.config.get("CORS_ORIGINS")
     if cors_origins:
         origins = [o.strip() for o in cors_origins.split(",") if o.strip()]
     cors.init_app(app, resources={r"/api/*": {"origins": origins}})
+
+    @app.after_request
+    def _security_headers(response):
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "no-referrer")
+        if request.path.startswith("/api/auth"):
+            response.headers.setdefault("Cache-Control", "no-store")
+        return response
 
     # Register blueprints
     from .routes.auth import auth_bp

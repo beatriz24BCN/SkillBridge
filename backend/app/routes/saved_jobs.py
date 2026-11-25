@@ -14,7 +14,7 @@ def _current_user_id():
         user_id = int(get_jwt_identity())
     except (TypeError, ValueError):
         return None
-    return user_id if User.query.get(user_id) else None
+    return user_id if db.session.get(User, user_id) else None
 
 
 @saved_jobs_bp.route("/", methods=["GET"])
@@ -34,7 +34,7 @@ def save_job(job_id):
     user_id = _current_user_id()
     if user_id is None:
         return jsonify({"error": "User not found"}), 401
-    if not Job.query.get(job_id):
+    if not db.session.get(Job, job_id):
         return jsonify({"error": "Job not found"}), 404
 
     existing = SavedJob.query.filter_by(user_id=user_id, job_id=job_id).first()

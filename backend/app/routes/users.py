@@ -19,13 +19,13 @@ def list_users():
 @jwt_required()
 def get_user(user_id: int):
     identity = int(get_jwt_identity())
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
     if identity != user_id and not (user.preferences or {}).get("profile_public", False):
         return jsonify({"error": "Forbidden"}), 403
     # Return only public info (exclude updated_at per spec)
-    data = user.to_dict(include_updated=False, include_private=False)
+    data = user.to_dict(include_updated=False, include_private=False) if identity == user_id else user.to_public_dict()
     return jsonify({"user": data}), 200
 
 
@@ -36,7 +36,7 @@ def update_user(user_id: int):
     if int(identity) != int(user_id):
         return jsonify({"error": "Forbidden"}), 403
 
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
 
@@ -74,7 +74,7 @@ def delete_user(user_id: int):
     if int(identity) != int(user_id):
         return jsonify({"error": "Forbidden"}), 403
 
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
 

@@ -51,7 +51,7 @@ Every company has one `owner_id`. Company owners may create, edit, and delete th
 
 ### Applications
 
-An application links one candidate (`user_id`) with one job (`job_id`). The application service prevents a second application for the same candidate/job pair at API level. New applications start as `pending`.
+An application links one candidate (`user_id`) with one job (`job_id`). The API prevents a second application and PostgreSQL enforces `uq_applications_user_job` for the same candidate/job pair. New applications start as `pending`.
 
 - Applicants may view/delete their own applications and edit the cover letter.
 - A job company's owner may list applicants for the job and update application status.
@@ -79,8 +79,9 @@ The frontend loads saved jobs from `/api/saved-jobs/`; the shared `JobCard` save
 1. `POST /api/auth/login` validates the email/password pair.
 2. The response contains a JWT and current user data, including preferences.
 3. The frontend saves the token.
-4. On a browser reload, `AuthProvider` calls `GET /api/auth/me` to restore the session.
-5. Missing, invalid, expired, or deleted-user sessions are cleared and private routes redirect to `/login`.
+4. The JWT includes the user's `token_version`; changing or resetting the password increments this version and invalidates older tokens.
+5. On a browser reload, `AuthProvider` calls `GET /api/auth/me` to restore the session.
+6. Missing, invalid, expired, revoked-version, or deleted-user sessions are cleared and private routes redirect to `/login`.
 
 Logout removes the browser token and clears in-memory user state. The current system has no persisted server-side logout blacklist.
 
@@ -118,7 +119,7 @@ Defaults include job alerts and application updates enabled, profile visibility 
 | Create/view/delete an application | Applicant; view/delete only their own |
 | Change application status | Owner of the job's company |
 | Edit/delete company | Company owner |
-| Read another user's profile | That user's `profile_public` must be true |
+| Read another user's professional profile | That user's `profile_public` must be true; email, phone, location, and preferences remain private |
 
 ## Schema evolution
 
@@ -129,6 +130,8 @@ Alembic tracks the schema in `backend/migrations`. The published migration seque
 3. Jobs and company ownership.
 4. Applications and candidate/job links.
 5. Saved jobs, profile fields/preferences, and password-reset tokens.
+6. User token-version invalidation.
+7. Database uniqueness for application user/job pairs.
 
 Existing migrations must remain immutable. New schema changes require a new revision and should be tested first against an independent PostgreSQL database.
 
@@ -137,4 +140,4 @@ Existing migrations must remain immutable. New schema changes require a new revi
 - Password-reset email delivery is not configured.
 - The AI endpoint uses local mock pattern matching rather than an external model.
 - Messages, credential verification, saved-job notifications, and advanced search/recommendation systems are not backed by complete domain services.
-- No committed automated test suite currently exists; frontend build and backend/migration checks are the available repeatable validations.
+- Backend pytest and frontend Vitest suites cover the primary flows. `.github/workflows/ci.yml` runs them with an isolated PostgreSQL 15 service.

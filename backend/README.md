@@ -21,6 +21,7 @@ Required variables:
 ```dotenv
 DATABASE_URL=postgresql+psycopg://skillbridge_user:YOUR_PASSWORD@localhost:5432/skillbridge
 JWT_SECRET_KEY=replace-with-a-long-random-value
+JWT_ACCESS_TOKEN_EXPIRES=900
 ```
 
 Optional variables:
@@ -29,6 +30,7 @@ Optional variables:
 CORS_ORIGINS=http://localhost:5173
 FLASK_RUN_HOST=127.0.0.1
 FLASK_RUN_PORT=5000
+RATELIMIT_STORAGE_URI=memory://
 ```
 
 `validate_config()` rejects application startup when `DATABASE_URL` or `JWT_SECRET_KEY` is missing. No SQLite fallback is configured.
@@ -56,14 +58,16 @@ Authorization: Bearer <access-token>
 
 The server:
 
-- Returns an access token from registration and login.
+- Returns an access token from registration and login with a configurable lifetime.
 - Stores the JWT identity as the string form of `users.id`.
+- Adds a `token_version` claim and rejects older tokens after a password change/reset.
+- Limits login attempts per remote address.
 - Returns JSON `401` errors for missing, invalid, expired, or revoked tokens.
 - Limits profile changes, company mutations, job mutations, applications, saved jobs, and settings to the relevant user or company owner.
 - Allows anonymous reads of jobs and companies.
 - Does not implement administrator or role-based access yet.
 
-Logout is client-side: the frontend removes its stored token. There is no server-side refresh-token or token-revocation store.
+Logout is client-side: the frontend removes its stored token. Password changes and password resets invalidate previously issued tokens through `token_version`; there is still no refresh-token store or explicit per-session logout endpoint.
 
 ## Models and relationships
 
@@ -301,7 +305,9 @@ Email delivery is **not configured**. The current backend creates reset records 
 
 ## Alembic migrations
 
-Migration files are in [migrations/versions](./migrations/versions). The current schema includes the historical users, companies, jobs, and applications migrations plus the additive migration for saved jobs, professional profiles, preferences, and reset tokens.
+Migration files are in [migrations/versions](./migrations/versions). The schema history includes users, companies, jobs, applications, saved jobs, professional profiles/preferences, reset tokens, user token-version revocation, and the database uniqueness constraint for applications.
+
+Before applying the application uniqueness revision, verify that no existing rows share the same `user_id` and `job_id`. The migration intentionally does not delete or merge data when duplicates exist; it fails safely so an operator can review them.
 
 Apply migrations to the configured database:
 
@@ -326,6 +332,23 @@ Never edit or rewrite an already published migration. Add a new revision for fut
 python -m compileall -q app migrations
 ```
 
+Install the test-only dependencies and provide an isolated `TEST_DATABASE_URL`:
+
+```bash
+pip install -r requirements-dev.txt
+TEST_DATABASE_URL=postgresql+psycopg://<test-user>:<test-password>@localhost:5432/skillbridge_test pytest -q
+```
+
+The test configuration refuses `skillbridge_dev` and any database name without `test`.
+
+For a production process, use a WSGI server rather than Flask's development server:
+
+```bash
+gunicorn --bind 0.0.0.0:8000 "app:create_app()"
+```
+
+Use a shared `RATELIMIT_STORAGE_URI` when running multiple application instances. `memory://` is suitable for local single-process development only. `JWT_ACCESS_TOKEN_EXPIRES` defaults to 900 seconds.
+
 With backend environment variables configured:
 
 ```bash
@@ -333,4 +356,4 @@ flask db check
 python run.py
 ```
 
-There is no automated backend test suite committed yet. Integration checks for destructive or schema-sensitive behavior should use a separate database.
+The committed tests cover authentication, JWT validation/revocation, ownership, applications, saved jobs, profiles, preferences, password recovery, and rate limiting. Integration checks must use a separate test database.

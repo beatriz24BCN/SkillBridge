@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from sqlalchemy.exc import IntegrityError
 
 from ..extensions import db
 from ..models import User, Job, Application
@@ -16,7 +17,7 @@ def list_applications():
     except Exception:
         return jsonify({"error": "Invalid token identity"}), 401
 
-    user = User.query.get(uid)
+    user = db.session.get(User, uid)
     if not user:
         return jsonify({"error": "User not found"}), 401
 
@@ -33,7 +34,7 @@ def get_application(app_id):
     except Exception:
         return jsonify({"error": "Invalid token identity"}), 401
 
-    app_obj = Application.query.get(app_id)
+    app_obj = db.session.get(Application, app_id)
     if not app_obj:
         return jsonify({"error": "Application not found"}), 404
 
@@ -52,7 +53,7 @@ def create_application():
     except Exception:
         return jsonify({"error": "Invalid token identity"}), 401
 
-    user = User.query.get(uid)
+    user = db.session.get(User, uid)
     if not user:
         return jsonify({"error": "User not found"}), 401
 
@@ -63,7 +64,7 @@ def create_application():
     if not job_id:
         return jsonify({"error": "job_id is required"}), 400
 
-    job = Job.query.get(job_id)
+    job = db.session.get(Job, job_id)
     if not job:
         return jsonify({"error": "Job not found"}), 404
 
@@ -81,6 +82,9 @@ def create_application():
     except ValueError as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 400
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({"error": "Application already exists"}), 409
     except Exception:
         db.session.rollback()
         return jsonify({"error": "Internal server error"}), 500
@@ -95,7 +99,7 @@ def update_application(app_id):
     except Exception:
         return jsonify({"error": "Invalid token identity"}), 401
 
-    app_obj = Application.query.get(app_id)
+    app_obj = db.session.get(Application, app_id)
     if not app_obj:
         return jsonify({"error": "Application not found"}), 404
 
@@ -135,7 +139,7 @@ def list_job_applications(job_id):
     except (TypeError, ValueError):
         return jsonify({"error": "Invalid token identity"}), 401
 
-    job = Job.query.get(job_id)
+    job = db.session.get(Job, job_id)
     if not job:
         return jsonify({"error": "Job not found"}), 404
     if job.company.owner_id != uid:
@@ -154,7 +158,7 @@ def delete_application(app_id):
     except Exception:
         return jsonify({"error": "Invalid token identity"}), 401
 
-    app_obj = Application.query.get(app_id)
+    app_obj = db.session.get(Application, app_id)
     if not app_obj:
         return jsonify({"error": "Application not found"}), 404
 

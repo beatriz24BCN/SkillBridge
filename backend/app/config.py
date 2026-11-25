@@ -6,6 +6,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def _env_int(name, default):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except ValueError as exc:
+        raise RuntimeError(f"{name} must be an integer") from exc
+
+
 class Config:
     """Application configuration.
 
@@ -19,9 +29,11 @@ class Config:
 
     # JWT secret key must be provided via environment variable. No default.
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+    JWT_ACCESS_TOKEN_EXPIRES = _env_int("JWT_ACCESS_TOKEN_EXPIRES", 900)
 
     # Comma-separated origins
     CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173")
+    RATELIMIT_STORAGE_URI = os.getenv("RATELIMIT_STORAGE_URI", "memory://")
 
 
 def validate_config():

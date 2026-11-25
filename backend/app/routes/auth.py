@@ -11,13 +11,14 @@ from flask_jwt_extended import (
 from ..extensions import db
 from ..models.user import User
 from ..models.password_reset import PasswordResetToken
+from ..extensions import limiter
 
 
 auth_bp = Blueprint("auth", __name__)
 
 
 def _validate_email(email: str) -> bool:
-    if not email:
+    if not isinstance(email, str) or not email:
         return False
     email = email.strip().lower()
     # Basic email pattern
@@ -25,19 +26,34 @@ def _validate_email(email: str) -> bool:
 
 
 def _validate_password(password: str) -> bool:
-    if not password or len(password) < 8:
+    if not isinstance(password, str) or not password or len(password) < 8:
         return False
     # At least one letter and one digit
     return re.search(r"[A-Za-z]", password) and re.search(r"\d", password)
 
 
+def _create_access_token(user):
+    return create_access_token(
+        identity=str(user.id),
+        additional_claims={"token_version": user.token_version},
+    )
+
+
+def _json_body():
+    data = request.get_json(silent=True)
+    return data if isinstance(data, dict) else {}
+
+
 @auth_bp.route("/register", methods=["POST"])
 def register():
-    data = request.get_json() or {}
-    email = (data.get("email") or "").strip().lower()
+    data = _json_body()
+    raw_email = data.get("email")
+    email = raw_email.strip().lower() if isinstance(raw_email, str) else ""
     password = data.get("password")
-    first_name = (data.get("first_name") or "").strip()
-    last_name = (data.get("last_name") or "").strip()
+    raw_first_name = data.get("first_name")
+    raw_last_name = data.get("last_name")
+    first_name = raw_first_name.strip() if isinstance(raw_first_name, str) else ""
+    last_name = raw_last_name.strip() if isinstance(raw_last_name, str) else ""
 
     if not email or not password or not first_name or not last_name:
         return jsonify({"error": "Missing required fields"}), 400
@@ -61,7 +77,7 @@ def register():
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
-        access_token = create_access_token(identity=str(user.id))
+        access_token = _create_access_token(user)
         return jsonify({
             "message": "User registered successfully",
             "access_token": access_token,
@@ -73,9 +89,11 @@ def register():
 
 
 @auth_bp.route("/login", methods=["POST"])
+@limiter.limit("10 per minute")
 def login():
-    data = request.get_json() or {}
-    email = (data.get("email") or "").strip().lower()
+    data = _json_body()
+    raw_email = data.get("email")
+    email = raw_email.strip().lower() if isinstance(raw_email, str) else ""
     password = data.get("password")
 
     if not email or not password:
@@ -85,7 +103,7 @@ def login():
     if not user or not user.check_password(password):
         return jsonify({"error": "Invalid credentials"}), 401
 
-    access_token = create_access_token(identity=str(user.id))
+    access_token = _create_access_token(user)
 
     return jsonify(
         {
@@ -103,7 +121,7 @@ def me():
         identity = int(identity)
     except Exception:
         return jsonify({"error": "Invalid token identity"}), 401
-    user = User.query.get(identity)
+    user = db.session.get(User, identity)
     if not user:
         return jsonify({"error": "User not found"}), 404
     return jsonify({"user": user.to_dict()}), 200
@@ -117,11 +135,11 @@ def update_me():
         identity = int(identity)
     except Exception:
         return jsonify({"error": "Invalid token identity"}), 401
-    user = User.query.get(identity)
+    user = db.session.get(User, identity)
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    data = request.get_json() or {}
+    data = _json_body()
     email = data.get("email")
     first_name = data.get("first_name")
     last_name = data.get("last_name")
@@ -132,6 +150,8 @@ def update_me():
     preferences = data.get("preferences")
 
     if email:
+        if not isinstance(email, str):
+            return jsonify({"error": "Invalid email format"}), 400
         email = email.strip().lower()
         if not _validate_email(email):
             return jsonify({"error": "Invalid email format"}), 400
@@ -142,13 +162,21 @@ def update_me():
         user.email = email
 
     if first_name is not None:
+        if not isinstance(first_name, str):
+            return jsonify({"error": "first_name must be a string"}), 400
         user.first_name = first_name.strip()
 
     if last_name is not None:
+        if not isinstance(last_name, str):
+            return jsonify({"error": "last_name must be a string"}), 400
         user.last_name = last_name.strip()
     if phone is not None:
+        if not isinstance(phone, str):
+            return jsonify({"error": "phone must be a string"}), 400
         user.phone = phone.strip()[:50] or None
     if location is not None:
+        if not isinstance(location, str):
+            return jsonify({"error": "location must be a string"}), 400
         user.location = location.strip()[:255] or None
     if skills is not None:
         if not isinstance(skills, list) or any(not isinstance(skill, str) or not skill.strip() for skill in skills):
@@ -204,11 +232,11 @@ def change_password():
         identity = int(identity)
     except Exception:
         return jsonify({"error": "Invalid token identity"}), 401
-    user = User.query.get(identity)
+    user = db.session.get(User, identity)
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    data = request.get_json() or {}
+    data = _json_body()
     current_password = data.get("current_password")
     new_password = data.get("new_password")
 
@@ -226,6 +254,7 @@ def change_password():
 
     try:
         user.set_password(new_password)
+        user.token_version += 1
         db.session.add(user)
         db.session.commit()
         return jsonify({"message": "Password updated successfully"}), 200
@@ -236,8 +265,9 @@ def change_password():
 
 @auth_bp.route("/password/forgot", methods=["POST"])
 def forgot_password():
-    data = request.get_json() or {}
-    email = (data.get("email") or "").strip().lower()
+    data = _json_body()
+    raw_email = data.get("email")
+    email = raw_email.strip().lower() if isinstance(raw_email, str) else ""
     if email and _validate_email(email):
         user = User.query.filter_by(email=email).first()
         if user:
@@ -256,10 +286,10 @@ def forgot_password():
 
 @auth_bp.route("/password/reset", methods=["POST"])
 def reset_password():
-    data = request.get_json() or {}
+    data = _json_body()
     token = data.get("token")
     password = data.get("password")
-    if not token or not password:
+    if not isinstance(token, str) or not token or not isinstance(password, str) or not password:
         return jsonify({"error": "Token and password are required"}), 400
     if not _validate_password(password):
         return jsonify({
@@ -272,10 +302,11 @@ def reset_password():
         return jsonify({"error": "Invalid or expired reset token"}), 400
 
     try:
-        user = User.query.get(reset.user_id)
+        user = db.session.get(User, reset.user_id)
         if not user:
             return jsonify({"error": "Invalid or expired reset token"}), 400
         user.set_password(password)
+        user.token_version += 1
         reset.used_at = now
         db.session.commit()
         return jsonify({"message": "Password updated successfully"}), 200
@@ -288,7 +319,7 @@ def reset_password():
 @jwt_required()
 def delete_me():
     identity = get_jwt_identity()
-    user = User.query.get(identity)
+    user = db.session.get(User, identity)
     if not user:
         return jsonify({"error": "User not found"}), 404
 

@@ -15,7 +15,7 @@ def list_jobs():
 
 @jobs_bp.route("/<int:job_id>", methods=["GET"])
 def get_job(job_id):
-    job = Job.query.get(job_id)
+    job = db.session.get(Job, job_id)
     if not job:
         return jsonify({"error": "Job not found"}), 404
     return jsonify(job.to_dict(include_company=True)), 200
@@ -28,7 +28,7 @@ def create_job():
     if not identity:
         return jsonify({"error": "Authentication required"}), 401
 
-    user = User.query.get(identity)
+    user = db.session.get(User, identity)
     if not user:
         return jsonify({"error": "User not found"}), 401
 
@@ -41,7 +41,7 @@ def create_job():
     if not payload.get("title") or not payload.get("description") or not payload.get("company_id"):
         return jsonify({"error": "Invalid data"}), 400
 
-    company = Company.query.get(payload.get("company_id"))
+    company = db.session.get(Company, payload.get("company_id"))
     if not company:
         return jsonify({"error": "Company not found"}), 404
 
@@ -60,15 +60,15 @@ def create_job():
 @jwt_required()
 def put_job(job_id):
     identity = get_jwt_identity()
-    user = User.query.get(identity)
+    user = db.session.get(User, identity)
     if not user:
         return jsonify({"error": "User not found"}), 401
 
-    job = Job.query.get(job_id)
+    job = db.session.get(Job, job_id)
     if not job:
         return jsonify({"error": "Job not found"}), 404
 
-    company = Company.query.get(job.company_id)
+    company = db.session.get(Company, job.company_id)
     if not company or company.owner_id != user.id:
         return jsonify({"error": "Forbidden"}), 403
 
@@ -79,7 +79,7 @@ def put_job(job_id):
 
     # If changing company, verify ownership
     if data.get("company_id") and data.get("company_id") != job.company_id:
-        newc = Company.query.get(data.get("company_id"))
+        newc = db.session.get(Company, data.get("company_id"))
         if not newc:
             return jsonify({"error": "Company not found"}), 404
         if newc.owner_id != user.id:
@@ -102,15 +102,15 @@ def put_job(job_id):
 @jwt_required()
 def patch_job(job_id):
     identity = get_jwt_identity()
-    user = User.query.get(identity)
+    user = db.session.get(User, identity)
     if not user:
         return jsonify({"error": "User not found"}), 401
 
-    job = Job.query.get(job_id)
+    job = db.session.get(Job, job_id)
     if not job:
         return jsonify({"error": "Job not found"}), 404
 
-    company = Company.query.get(job.company_id)
+    company = db.session.get(Company, job.company_id)
     if not company or company.owner_id != user.id:
         return jsonify({"error": "Forbidden"}), 403
 
@@ -118,7 +118,7 @@ def patch_job(job_id):
     allowed = ["title", "description", "requirements", "location", "salary", "modality", "contract_type", "company_id"]
 
     if "company_id" in data and data.get("company_id") != job.company_id:
-        newc = Company.query.get(data.get("company_id"))
+        newc = db.session.get(Company, data.get("company_id"))
         if not newc:
             return jsonify({"error": "Company not found"}), 404
         if newc.owner_id != user.id:
@@ -137,15 +137,15 @@ def patch_job(job_id):
 @jwt_required()
 def delete_job(job_id):
     identity = get_jwt_identity()
-    user = User.query.get(identity)
+    user = db.session.get(User, identity)
     if not user:
         return jsonify({"error": "User not found"}), 401
 
-    job = Job.query.get(job_id)
+    job = db.session.get(Job, job_id)
     if not job:
         return jsonify({"error": "Job not found"}), 404
 
-    company = Company.query.get(job.company_id)
+    company = db.session.get(Company, job.company_id)
     if not company or company.owner_id != user.id:
         return jsonify({"error": "Forbidden"}), 403
 

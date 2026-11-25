@@ -27,8 +27,8 @@ Features such as messages, credentials, saved-job persistence notifications, pro
 ### Frontend
 
 - React 18
-- React Router 6
-- Vite 5
+- React Router 7
+- Vite 8
 - JavaScript and CSS
 - Service modules under `src/services`
 - Shared authentication state in `src/context/AuthContext.jsx`
@@ -93,7 +93,7 @@ PostgreSQL
 
 ## Prerequisites
 
-- Node.js 18 or newer
+- Node.js 20 or newer
 - npm
 - Python 3.10 or newer
 - PostgreSQL 15 or compatible
@@ -192,7 +192,9 @@ The Compose file does not publish a host port for PostgreSQL or automatically mi
 | --- | --- | --- | --- |
 | `DATABASE_URL` | Backend | Yes | PostgreSQL SQLAlchemy URL. |
 | `JWT_SECRET_KEY` | Backend | Yes | Secret used to sign and verify JWTs. |
+| `JWT_ACCESS_TOKEN_EXPIRES` | Backend | No | Access-token lifetime in seconds; defaults to 900. |
 | `CORS_ORIGINS` | Backend | No | Comma-separated allowed origins; defaults to `http://localhost:5173`. |
+| `RATELIMIT_STORAGE_URI` | Backend | No | Flask-Limiter storage; defaults to in-memory development storage. |
 | `FLASK_RUN_HOST` | Backend | No | Flask bind host; defaults to `127.0.0.1`. |
 | `FLASK_RUN_PORT` | Backend | No | Flask port; defaults to `5000`. |
 | `VITE_API_URL` | Frontend | No | Absolute backend URL; omit when using the Vite proxy. |
@@ -201,18 +203,31 @@ The Compose file does not publish a host port for PostgreSQL or automatically mi
 
 ```bash
 # Frontend
+npm test
 npm run build
 
 # Backend syntax
 cd backend
 python -m compileall -q app migrations
+pytest -q
 
 # Migration/schema alignment, with backend environment variables configured
 flask db current
 flask db check
 ```
 
-There is currently no committed automated frontend or backend test suite. Database integration checks should use an independent development/test database, never production data.
+Install backend test dependencies with `pip install -r requirements-dev.txt`. `pytest` requires `TEST_DATABASE_URL` and refuses to run if the configured database is named `skillbridge_dev` or does not contain `test` in its name. Database integration checks should always use an independent test database.
+
+GitHub Actions runs backend migrations/tests against an ephemeral PostgreSQL 15 service and runs frontend tests plus the production build.
+
+## Production runtime notes
+
+- Run Flask behind a production WSGI server such as Gunicorn, for example `gunicorn --bind 0.0.0.0:8000 "app:create_app()"`.
+- Terminate HTTPS at the deployment platform or reverse proxy.
+- Use a strong `JWT_SECRET_KEY`, explicit CORS origins, and a short `JWT_ACCESS_TOKEN_EXPIRES`.
+- Configure a shared `RATELIMIT_STORAGE_URI` for multi-instance deployments. `memory://` is suitable only for local/single-process development.
+- Apply migrations as a controlled release step before serving a new application version.
+- Password-reset email delivery remains intentionally unconfigured and must be integrated separately before users can receive recovery links.
 
 ## Authors
 

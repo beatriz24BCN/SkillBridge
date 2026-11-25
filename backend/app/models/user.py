@@ -18,6 +18,7 @@ class User(db.Model):
     skills = db.Column(JSONB, nullable=False, default=list)
     experience = db.Column(JSONB, nullable=False, default=list)
     preferences = db.Column(JSONB, nullable=False, default=dict)
+    token_version = db.Column(db.Integer, nullable=False, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     # One-to-many relationship: a user can own multiple companies
@@ -62,6 +63,16 @@ class User(db.Model):
         if include_updated:
             data["updated_at"] = None if not self.updated_at else self.updated_at.isoformat()
         return data
+
+    def to_public_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "skills": self.skills or [],
+            "experience": self.experience or [],
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
 
     def __repr__(self):
         return f"<User {self.email}>"
