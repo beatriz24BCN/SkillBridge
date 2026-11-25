@@ -1,7 +1,7 @@
 import re
 from datetime import datetime, timedelta
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, current_app, jsonify, request
 from flask_jwt_extended import (
     create_access_token,
     jwt_required,
@@ -12,6 +12,7 @@ from ..extensions import db
 from ..models.user import User
 from ..models.password_reset import PasswordResetToken
 from ..extensions import limiter
+from ..services.brevo_email_service import EmailDeliveryError, password_reset_mailer
 
 
 auth_bp = Blueprint("auth", __name__)
@@ -276,9 +277,14 @@ def forgot_password():
             token, reset = PasswordResetToken.create_for_user(user.id, now + timedelta(minutes=30))
             db.session.add(reset)
             db.session.commit()
-            # Email delivery is intentionally not simulated. The provider integration
-            # should deliver this raw token using the configured reset URL.
-            del token
+            try:
+                delivered = password_reset_mailer(current_app.config).send_password_reset(user.email, token)
+                if not delivered:
+                    reset.used_at = now
+                    db.session.commit()
+            except EmailDeliveryError:
+                reset.used_at = now
+                db.session.commit()
     return jsonify({
         "message": "If the email is registered, password reset instructions will be sent.",
     }), 202

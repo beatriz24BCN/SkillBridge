@@ -28,12 +28,22 @@ Optional variables:
 
 ```dotenv
 CORS_ORIGINS=http://localhost:5173
+APP_ENV=development
 FLASK_RUN_HOST=127.0.0.1
 FLASK_RUN_PORT=5000
 RATELIMIT_STORAGE_URI=memory://
+RATELIMIT_CONNECT_TIMEOUT=2
+RATELIMIT_SOCKET_TIMEOUT=2
+BREVO_EMAIL_ENABLED=false
+BREVO_API_KEY=
+BREVO_SENDER_EMAIL=
+BREVO_SENDER_NAME=SkillBridge
+BREVO_API_URL=https://api.brevo.com/v3/smtp/email
+BREVO_TIMEOUT=10
+FRONTEND_URL=http://localhost:5173
 ```
 
-`validate_config()` rejects application startup when `DATABASE_URL` or `JWT_SECRET_KEY` is missing. No SQLite fallback is configured.
+`validate_config()` rejects application startup when `DATABASE_URL` or `JWT_SECRET_KEY` is missing. No SQLite fallback is configured. When Brevo is enabled, it also requires `BREVO_API_KEY`, `BREVO_SENDER_EMAIL`, and an absolute `FRONTEND_URL`; production requires the frontend URL to use HTTPS.
 
 Install and start:
 
@@ -46,7 +56,7 @@ flask db upgrade
 python run.py
 ```
 
-For the Dev Container, use the PostgreSQL service hostname `postgres` and development credentials configured locally rather than `localhost`.
+For the Dev Container, use the PostgreSQL service hostname `postgres`, Redis hostname `redis`, and development credentials configured locally rather than `localhost`. The Compose environment already sets `RATELIMIT_STORAGE_URI=redis://redis:6379/0`.
 
 ## JWT authentication and permissions
 
@@ -91,6 +101,7 @@ All paths are relative to the API origin. Paths shown with `/` should retain tha
 | Method | Path | Authentication | Description |
 | --- | --- | --- | --- |
 | GET | `/api/health` | No | Service health response. |
+| GET | `/api/readiness` | No | Redis-backed rate-limit storage readiness. Returns JSON `503` when unhealthy. |
 
 ### Authentication and current user
 
@@ -301,7 +312,11 @@ Response (`202`), for both registered and unknown addresses:
 - The API does not reveal whether an email is registered.
 - The API intentionally does not return reset tokens.
 
-Email delivery is **not configured**. The current backend creates reset records but does not simulate or send an email. A future mail integration must deliver a link to `/reset-password?token=<token>` and must not log raw tokens.
+Email delivery uses Brevo's official transactional endpoint when `BREVO_EMAIL_ENABLED=true`. It sends `POST /v3/smtp/email` with the `api-key` header, an independently configured verified sender, and text/HTML content. `FRONTEND_URL` supplies the application base URL used to build `/reset-password?token=...`. Credentials remain environment-only.
+
+If Brevo is disabled, no message is sent and the response remains generic. If Brevo rejects the request or the network call fails, the error is logged without the API key, recipient, raw token, or provider response body; the generated token is marked used and callers receive the same generic response.
+
+To enable delivery, create an API key and register/verify `BREVO_SENDER_EMAIL` in Brevo, then set the credentials only in the deployment secret store or untracked `backend/.env`. Tests replace `urlopen` and never call the provider.
 
 ## Alembic migrations
 
@@ -336,7 +351,10 @@ Install the test-only dependencies and provide an isolated `TEST_DATABASE_URL`:
 
 ```bash
 pip install -r requirements-dev.txt
-TEST_DATABASE_URL=postgresql+psycopg://<test-user>:<test-password>@localhost:5432/skillbridge_test pytest -q
+TEST_DATABASE_URL=postgresql+psycopg://<test-user>:<test-password>@localhost:5432/skillbridge_test \
+TEST_REDIS_URL=redis://localhost:6379/15 \
+RATELIMIT_STORAGE_URI=redis://localhost:6379/14 \
+python -m pytest -q
 ```
 
 The test configuration refuses `skillbridge_dev` and any database name without `test`.
@@ -347,7 +365,9 @@ For a production process, use a WSGI server rather than Flask's development serv
 gunicorn --bind 0.0.0.0:8000 "app:create_app()"
 ```
 
-Use a shared `RATELIMIT_STORAGE_URI` when running multiple application instances. `memory://` is suitable for local single-process development only. `JWT_ACCESS_TOKEN_EXPIRES` defaults to 900 seconds.
+Use `RATELIMIT_STORAGE_URI=redis://...` or `rediss://...` when running multiple application instances. `APP_ENV=production` rejects process-local `memory://`. Redis keys are shared by workers and use the limit window's TTL. `RATELIMIT_CONNECT_TIMEOUT` and `RATELIMIT_SOCKET_TIMEOUT` default to two seconds, storage errors are not swallowed, and `GET /api/readiness` checks the configured storage. Unavailable Redis returns JSON `503` rather than silently falling back to per-process memory. `JWT_ACCESS_TOKEN_EXPIRES` defaults to 900 seconds.
+
+The Dev Container supplies Redis 7 with a persistent `redis_data` volume and configures the workspace service to use `redis://redis:6379/0`. Production should use a managed or otherwise highly available Redis deployment with restricted network access and credentials.
 
 With backend environment variables configured:
 
@@ -356,4 +376,4 @@ flask db check
 python run.py
 ```
 
-The committed tests cover authentication, JWT validation/revocation, ownership, applications, saved jobs, profiles, preferences, password recovery, and rate limiting. Integration checks must use a separate test database.
+The committed tests cover authentication, JWT validation/revocation, ownership, applications, saved jobs, profiles, preferences, password recovery, Brevo payload/error handling, and Redis rate limiting. Integration checks must use a separate test database; CI also provides an isolated Redis 7 service.

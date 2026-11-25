@@ -7,10 +7,10 @@ backend/
   app/
     __init__.py          Flask application factory and blueprint registration
     config.py            Environment-based configuration
-    extensions.py        SQLAlchemy, Migrate, JWT, and CORS objects
+    extensions.py        SQLAlchemy, Migrate, JWT, CORS, and rate limiter
     models/              SQLAlchemy entities and serialization
     routes/              HTTP endpoints grouped by domain
-    services/            Backend service helpers
+    services/            Brevo and other backend service helpers
   migrations/            Alembic environment and revisions
   run.py                 Local Flask entry point
 src/
@@ -23,6 +23,8 @@ src/
 ```
 
 The frontend uses the Vite development proxy for `/api` requests unless `VITE_API_URL` is configured. Service modules parse JSON responses and attach the access token to authenticated calls.
+
+PostgreSQL is the durable application data store. Redis 7 provides shared rate-limit counters for the Dev Container and production-style multi-process deployments. Brevo is an optional outbound integration for password-reset email; disabled delivery never calls the provider.
 
 ## Data relationships
 
@@ -94,7 +96,7 @@ Logout removes the browser token and clears in-memory user state. The current sy
 5. `/reset-password?token=...` calls `POST /api/auth/password/reset`.
 6. The API rejects invalid, expired, or used tokens; a valid reset updates the password hash and marks the token used.
 
-Email delivery is intentionally absent. Production integration still needs to provide the raw token to a mail service and create the reset link without logging the token.
+When Brevo is enabled, the raw token is placed in the reset link included in the transactional email payload sent to Brevo's official API. The API key, verified sender, and `FRONTEND_URL` are independently configured per environment. Provider failures are handled without exposing account existence or logging the key/token; the generated database token is marked used so a failed delivery cannot later produce a valid link.
 
 ### Profile and preferences
 
@@ -133,11 +135,17 @@ Alembic tracks the schema in `backend/migrations`. The published migration seque
 6. User token-version invalidation.
 7. Database uniqueness for application user/job pairs.
 
+## Rate-limit and email infrastructure
+
+Flask-Limiter defaults to process-local memory for simple development. The Dev Container sets `RATELIMIT_STORAGE_URI=redis://redis:6379/0`, and `APP_ENV=production` rejects `memory://`. The configured Redis stores fixed-window login counters with expiration; all Gunicorn workers/instances observe the same counters. The login route permits 10 requests per minute per remote address and returns 429 after the limit. `/api/readiness` performs the storage health check; unhealthy storage and request-time storage failures return safe JSON 503 responses. Redis exceptions are wrapped, timeouts are configurable, and in-memory fallback is disabled.
+
+The Brevo integration posts transactional email payloads to the official `POST /v3/smtp/email` endpoint using the `api-key` header. The sender must be verified in Brevo, and the API key must come from the deployment environment. `FRONTEND_URL` is used to build the frontend reset URL; production requires HTTPS. Disabled delivery does not call Brevo or expose a token. Automated tests replace the HTTP transport and do not send real messages.
+
 Existing migrations must remain immutable. New schema changes require a new revision and should be tested first against an independent PostgreSQL database.
 
 ## Development limitations
 
-- Password-reset email delivery is not configured.
+- Brevo password-reset delivery is implemented but requires deployment-specific API key and verified sender settings.
 - The AI endpoint uses local mock pattern matching rather than an external model.
 - Messages, credential verification, saved-job notifications, and advanced search/recommendation systems are not backed by complete domain services.
-- Backend pytest and frontend Vitest suites cover the primary flows. `.github/workflows/ci.yml` runs them with an isolated PostgreSQL 15 service.
+- Backend pytest and frontend Vitest suites cover the primary flows. `.github/workflows/ci.yml` runs them with isolated PostgreSQL 15 and Redis 7 services and mocked Brevo transport.

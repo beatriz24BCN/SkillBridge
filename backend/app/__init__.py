@@ -1,5 +1,6 @@
 import os
 from flask import Flask, jsonify, request
+from limits.errors import StorageError
 
 from .config import Config, validate_config
 from .extensions import db, migrate, jwt, cors, limiter
@@ -52,6 +53,11 @@ def create_app():
     def _rate_limit_callback(error):
         return jsonify({"error": "Too many requests; try again later"}), 429
 
+    @app.errorhandler(StorageError)
+    def _rate_limit_storage_callback(_error):
+        app.logger.exception("Shared rate-limit storage is unavailable")
+        return jsonify({"error": "Service temporarily unavailable"}), 503
+
     # Configure CORS
     origins = []
     cors_origins = app.config.get("CORS_ORIGINS")
@@ -100,5 +106,17 @@ def create_app():
     @app.route("/api/health", methods=["GET"])
     def health():
         return jsonify({"status": "ok", "message": "SkillBridge API is running"})
+
+    @app.route("/api/readiness", methods=["GET"])
+    def readiness():
+        try:
+            storage_healthy = limiter.limiter.storage.check()
+        except StorageError:
+            app.logger.exception("Rate-limit storage readiness check failed")
+            return jsonify({"status": "error", "message": "Rate-limit storage unavailable"}), 503
+        if not storage_healthy:
+            app.logger.error("Rate-limit storage readiness check returned unhealthy")
+            return jsonify({"status": "error", "message": "Rate-limit storage unavailable"}), 503
+        return jsonify({"status": "ok"}), 200
 
     return app

@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 
-from app.extensions import db
+from limits.errors import StorageError
+
+from app.extensions import db, limiter
 from app.models import PasswordResetToken, User
 from conftest import auth
 from flask_jwt_extended import create_access_token
@@ -189,3 +191,34 @@ def test_login_rate_limit_returns_429(client):
         "email": "limited@example.test",
         "password": "WrongPassword123",
     }).status_code == 429
+
+
+def test_readiness_reports_rate_limit_storage(client):
+    response = client.get("/api/readiness")
+    assert response.status_code == 200
+    assert response.get_json()["status"] == "ok"
+
+
+def test_login_rate_limit_storage_failure_returns_503(client, monkeypatch):
+    def unavailable(*_args, **_kwargs):
+        raise StorageError("storage unavailable")
+
+    monkeypatch.setattr(limiter.limiter.storage, "incr", unavailable)
+    response = client.post("/api/auth/login", json={
+        "email": "missing@example.test",
+        "password": "WrongPassword123",
+    })
+
+    assert response.status_code == 503
+    assert response.get_json() == {"error": "Service temporarily unavailable"}
+
+
+def test_readiness_reports_unavailable_rate_limit_storage(client, monkeypatch):
+    monkeypatch.setattr(limiter.limiter.storage, "check", lambda: False)
+    response = client.get("/api/readiness")
+
+    assert response.status_code == 503
+    assert response.get_json() == {
+        "status": "error",
+        "message": "Rate-limit storage unavailable",
+    }

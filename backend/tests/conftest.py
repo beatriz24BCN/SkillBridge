@@ -14,6 +14,7 @@ if database_name == "skillbridge_dev" or "test" not in database_name.lower():
 
 os.environ["DATABASE_URL"] = TEST_DATABASE_URL
 os.environ["JWT_SECRET_KEY"] = "skillbridge-tests-only-secret-at-least-32-bytes"
+os.environ.setdefault("RATELIMIT_STORAGE_URI", "memory://")
 
 from app import create_app
 from app.extensions import db, limiter
